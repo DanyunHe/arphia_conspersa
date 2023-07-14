@@ -67,9 +67,16 @@ bi_image::bi_image(const char* tfile,int q_) : q(q_), dof(2*q*q), ftype(0),
 	m=(int) width;
 	n=(int) height;
 	f=new double[mn=m*n];
+	int v,r,g,b,a;
 	for(int i=0;i<m;i++){
 		for(int j=0;j<n;j++){
-			f[i*n+j]=tmp[j*n+i];
+			v=tmp[j*n+i];
+			r=v&255;
+			g=(v>>8)&255;
+			b=(v>>16)&255;
+			a=(v>>24)&255;
+			printf("%g %g %g %g\n",r,g,b,a);
+			f[i*n+j]=(1/3.)*(r+g+b);
 		}
 	}
 	_TIFFfree(tmp);
