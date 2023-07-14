@@ -660,7 +660,7 @@ void bi_image::output_gnuplot(const char *filename,bool coords,bool primary) {
  * \param[in] a the pixel values of the image.
  * \param[in] c the mapping coefficients. */
 void bi_image::project(double &a,double *c){
-	//a=c*a;
+//	a=c*a;
 
 }
 

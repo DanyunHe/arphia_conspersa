@@ -15,10 +15,10 @@ int main() {
 	// Read in the two images. Set the optimization extent to be 40 pixels
 	// smaller than the full image, to prevent the method applying too much
 	// weight to the boundaries.
-	bi_image a("../test0.tiff",q),b("../test1.tiff",q);
+	bi_image a("../gray_im_fit.tif",q),b("../gray_test1.tif",q);
 	puts("1");
 	// Choose function minimization type. 0: (a-b)^2, 1: a*(a-b).
-	b.ftype=1;
+	b.ftype=0;
 
 	// Pin Chebyshev polynomials to match the boundary
 	b.chebyshev_pin();
