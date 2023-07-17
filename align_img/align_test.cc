@@ -10,7 +10,7 @@ int main() {
 
 	// q-1 is the maximum degree of polynomial to consider. dof sets the
 	// total number of degrees of freedom in the minimization.
-	const int q=6,dof=2*q*q;
+	const int q=2,dof=2*q*q;
 
 	// Read in the two images. Set the optimization extent to be 40 pixels
 	// smaller than the full image, to prevent the method applying too much
