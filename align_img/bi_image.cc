@@ -75,13 +75,14 @@ bi_image::bi_image(const char* tfile,int q_) : q(q_), dof(2*q*q), ftype(0),
 			g=(v>>8)&255;
 			b=(v>>16)&255;
 			a=(v>>24)&255;
+			f[j*m+i]=(1/3.)*(r+g+b);
 			//if(i>1000) printf("%u %u %u %u %u\n",v,r,g,b,a);
-			if(r!=255 || g!=255 || b!=255){
-				f[j*m+i]=1.;
-			}
-			else{
-				f[j*m+i]=0.;
-			}
+			//if(r!=255 || g!=255 || b!=255){
+			//	f[j*m+i]=1.;
+		//	}
+		//	else{
+		//		f[j*m+i]=0.;
+		//	}
 	}
 	}
 	_TIFFfree(tmp);
