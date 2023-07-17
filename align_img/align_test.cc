@@ -10,7 +10,7 @@ int main() {
 
 	// q-1 is the maximum degree of polynomial to consider. dof sets the
 	// total number of degrees of freedom in the minimization.
-	const int q=1,dof=2*q*q;
+	const int q=2,dof=2*q*q;
 
 	// Read in the two images. Set the optimization extent to be 40 pixels
 	// smaller than the full image, to prevent the method applying too much
@@ -30,8 +30,8 @@ int main() {
 
 	// Create smoothed versions for fitting
 	bi_image a2(a),b2(b);
-	for(int i=0;i<50;i++) a2.smooth(0.05); //a2.smooth(0.125);
-	for(int i=0;i<50;i++) b2.smooth(0.05); //b2.smooth(0.125);
+	for(int i=0;i<150;i++) a2.smooth(0.05); //a2.smooth(0.125);
+	for(int i=0;i<150;i++) b2.smooth(0.05); //b2.smooth(0.125);
 
     puts("3");
 	// Project the image to the same lighting condition

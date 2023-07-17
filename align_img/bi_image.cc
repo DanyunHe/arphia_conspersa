@@ -449,8 +449,6 @@ double bi_image::t_fun(double *c) {
             }
         }
     }
-    output_state(c);
-    printf("f = %g\n",4./mn*S);
     return 4./mn*S;
 }
 
@@ -460,7 +458,6 @@ double bi_image::t_fun(double *c) {
  * \param[in] gr an array in which to store the gradient. */
 template<int ft>
 void bi_image::t_dfun(double *c,double *gr) {
-    puts("dfun");
 #pragma omp parallel
     {
 
@@ -496,11 +493,6 @@ void bi_image::t_dfun(double *c,double *gr) {
         for(int k=1;k<nt;k++) gr[l]+=grl[k][l];
         gr[l]*=4./mn;
     }
-    output_state(c);
-    double gr2[2];
-    dfun_check(c,gr2,1e-5);
-    printf("df = [ %g, %g]\n",gr[0],gr[1]);
-    printf("df2 = [ %g, %g]\n",gr2[0],gr2[1]);
 }
 
 /** Evaluates the square difference between the field values in this class
@@ -511,7 +503,6 @@ void bi_image::t_dfun(double *c,double *gr) {
  * \return The value of the difference. */
 template<int ft>
 double bi_image::t_fun_dfun(double *c,double *gr) {
-    puts("fun dfun");
     double S=0;
 #pragma omp parallel
     {
@@ -548,9 +539,6 @@ double bi_image::t_fun_dfun(double *c,double *gr) {
         for(int k=1;k<nt;k++) gr[l]+=grl[k][l];
         gr[l]*=4./mn;
     }
-    output_state(c);
-    printf("f = %g\n",4./mn*S);
-    printf("df = [ %g, %g]\n",gr[0],gr[1]);
     return 4./mn*S;
 }
 
