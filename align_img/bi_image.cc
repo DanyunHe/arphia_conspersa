@@ -346,10 +346,10 @@ double bi_image::fit(bi_image &b,double *al_) {
     // Do the BFGS iterations
     piter=0;
     do {
-        if(iter%20==0) message(piter,iter,s,t0);
+        if(iter%1==0) message(piter,iter,s,t0);
         iter++;
         if(gsl_multimin_fdfminimizer_iterate(s)) break;
-        status=gsl_multimin_test_gradient(s->gradient,1e-4);
+        status=gsl_multimin_test_gradient(s->gradient,1e-3);
     } while(status==GSL_CONTINUE&&iter<10000);
 
     // Print final information
@@ -449,6 +449,8 @@ double bi_image::t_fun(double *c) {
             }
         }
     }
+    output_state(c);
+    printf("f = %g\n",4./mn*S);
     return 4./mn*S;
 }
 
@@ -458,6 +460,7 @@ double bi_image::t_fun(double *c) {
  * \param[in] gr an array in which to store the gradient. */
 template<int ft>
 void bi_image::t_dfun(double *c,double *gr) {
+    puts("dfun");
 #pragma omp parallel
     {
 
@@ -493,6 +496,11 @@ void bi_image::t_dfun(double *c,double *gr) {
         for(int k=1;k<nt;k++) gr[l]+=grl[k][l];
         gr[l]*=4./mn;
     }
+    output_state(c);
+    double gr2[2];
+    dfun_check(c,gr2,1e-5);
+    printf("df = [ %g, %g]\n",gr[0],gr[1]);
+    printf("df2 = [ %g, %g]\n",gr2[0],gr2[1]);
 }
 
 /** Evaluates the square difference between the field values in this class
@@ -503,6 +511,7 @@ void bi_image::t_dfun(double *c,double *gr) {
  * \return The value of the difference. */
 template<int ft>
 double bi_image::t_fun_dfun(double *c,double *gr) {
+    puts("fun dfun");
     double S=0;
 #pragma omp parallel
     {
@@ -539,6 +548,9 @@ double bi_image::t_fun_dfun(double *c,double *gr) {
         for(int k=1;k<nt;k++) gr[l]+=grl[k][l];
         gr[l]*=4./mn;
     }
+    output_state(c);
+    printf("f = %g\n",4./mn*S);
+    printf("df = [ %g, %g]\n",gr[0],gr[1]);
     return 4./mn*S;
 }
 
@@ -702,7 +714,7 @@ void bi_image::write_image(const char* filename,bool primary) {
     // Assemble bitmap information
     int i,j;
     for(j=0;j<n;j++) {
-        png_byte* rp=(rowp[j]=new png_byte[3*m]);
+        png_byte* rp=(rowp[n-1-j]=new png_byte[3*m]);
         for(i=0;i<m;i++,fp++) {
             *(rp++)=png_scale(fp->x);
             *(rp++)=png_scale(fp->y);

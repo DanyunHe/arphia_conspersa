@@ -97,6 +97,11 @@ class bi_image {
 		void pos(double *c,double &u,double &v,int i,int j);
 		inline double gfunc(int ft,vec3 a,vec3 b);
 		inline double gbfunc(int ft,vec3 a,vec3 b,vec3 &gb);
+        void output_state(double *c) {
+            printf("[%g",*c);
+            for(int i=1;i<dof;i++) printf(",%g",c[i]);
+            puts("]");
+        }
 		inline double rshift(double s) {
 			return -s+static_cast<double>(rand())*(2*s/RAND_MAX);
 		}
