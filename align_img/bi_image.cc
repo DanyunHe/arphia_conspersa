@@ -70,14 +70,19 @@ bi_image::bi_image(const char* tfile,int q_) : q(q_), dof(2*q*q), ftype(0),
 	int v,r,g,b,a;
 	for(int i=0;i<m;i++){
 		for(int j=0;j<n;j++){
-			v=tmp[j*n+i];
+			v=tmp[j*m+i];
 			r=v&255;
 			g=(v>>8)&255;
 			b=(v>>16)&255;
 			a=(v>>24)&255;
-			printf("%g %g %g %g\n",r,g,b,a);
-			f[i*n+j]=(1/3.)*(r+g+b);
-		}
+			//if(i>1000) printf("%u %u %u %u %u\n",v,r,g,b,a);
+			if(r!=255 || g!=255 || b!=255){
+				f[j*m+i]=1.;
+			}
+			else{
+				f[j*m+i]=0.;
+			}
+	}
 	}
 	_TIFFfree(tmp);
 
