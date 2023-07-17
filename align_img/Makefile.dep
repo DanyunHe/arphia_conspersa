@@ -1,2 +1,3 @@
-bi_interp.o: bi_interp.cc bi_interp.hh
-bi_image.o: bi_image.cc bi_image.hh bi_interp.hh
+bi_interp.o: bi_interp.cc bi_interp.hh vec3.hh
+bi_image.o: bi_image.cc bi_image.hh vec3.hh bi_interp.hh
+png_output.o: png_output.cc png_output.hh

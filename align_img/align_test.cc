@@ -60,7 +60,9 @@ int main() {
 
 	// Apply fit to original image
 	b.compute_map(b2.al);
-	b.output_gnuplot("orig_bmap.gnu",true,false);
+	//b.output_gnuplot("orig_bmap.gnu",true,false,0);
+    b.write_image("orig.png",true);
+    b.write_image("mapped.png",false);
 
 	// Apply fit to thresholded image
 	//c.compute_map(b2.al);

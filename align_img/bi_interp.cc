@@ -9,16 +9,16 @@
  * \param[in] (m,n) the dimensions of the grid.
  * \param[in] (ax,bx) the horizontal range of the grid.
  * \param[in] (ay,by) the vertical range of the grid. */
-bicubic_interp::bicubic_interp(double *&u_,int m_,int n_,double ax_,double bx_,double ay_,double by_)
+bicubic_interp::bicubic_interp(vec3 *&u_,int m_,int n_,double ax_,double bx_,double ay_,double by_)
 	: m(m_), n(n_), ax(ax_), ay(ay_), xsp((m-1)/(bx_-ax)),
 	ysp((n-1)/(by_-ay)), u(u_), ijc(-1) {
 
 	// Clear the intermediate table of coefficients that is used in the
 	// calculations
-	*a=a[1]=a[2]=a[3]=0;
-	a[4]=a[5]=a[6]=a[7]=0;
-	a[8]=a[9]=a[10]=a[11]=0;
-	a[12]=a[13]=a[14]=a[15]=0;
+	*a=a[1]=a[2]=a[3]=vec3(0);
+	a[4]=a[5]=a[6]=a[7]=vec3(0);
+	a[8]=a[9]=a[10]=a[11]=vec3(0);
+	a[12]=a[13]=a[14]=a[15]=vec3(0);
 }
 
 /** Maps a physical point onto the unit grid, and computes the grid cell that
@@ -54,11 +54,11 @@ void bicubic_interp::grid_setup(double &x,double &y) {
 /** Sets up the table of coefficients of the bicubic interpolation function. */
 void bicubic_interp::table_setup(int i,int j,int ij) {
 	ijc=ij;
-	double *up=u+ij;
-	double c00,c01,c02,c03;
-	double c10,c11,c12,c13;
-	double c20,c21,c22,c23;
-	double c30,c31,c32,c33;
+	vec3 *up=u+ij;
+	vec3 c00,c01,c02,c03;
+	vec3 c10,c11,c12,c13;
+	vec3 c20,c21,c22,c23;
+	vec3 c30,c31,c32,c33;
 
 	// Bicubic interpolation requires considering a 4x4 grid of field
 	// values. Compute the interpolation coefficients for the central two
@@ -101,12 +101,12 @@ void bicubic_interp::table_setup(int i,int j,int ij) {
  * \param[in] i the horizontal grid index.
  * \param[in] up a pointer the grid square to consider.
  * \param[out] (c0,c1,c2,c3) the computed values. */
-void bicubic_interp::compute_x(int i,double *up,double &c0,double &c1,double &c2,double &c3) {
+void bicubic_interp::compute_x(int i,vec3 *up,vec3 &c0,vec3 &c1,vec3 &c2,vec3 &c3) {
 	c0=*up;
 	if(i==0) {
 
 		// Setup for the leftmost column
-		c1=-1.5*(*up)+2*up[1]-0.5*up[2];
+		c1=-1.5*(*up)+2.*up[1]-0.5*up[2];
 		c2=0.5*(*up)-up[1]+0.5*up[2];
 		c3=0;
 	} else if(i==m-2) {
@@ -119,7 +119,7 @@ void bicubic_interp::compute_x(int i,double *up,double &c0,double &c1,double &c2
 
 		// Setup for a middle column
 		c1=-0.5*up[-1]+0.5*up[1];
-		c2=up[-1]-2.5*(*up)+2*up[1]-0.5*up[2];
+		c2=up[-1]-2.5*(*up)+2.*up[1]-0.5*up[2];
 		c3=-0.5*up[-1]+1.5*(*up)-1.5*up[1]+0.5*up[2];
 	}
 }
@@ -127,7 +127,7 @@ void bicubic_interp::compute_x(int i,double *up,double &c0,double &c1,double &c2
 /** Calculates the bicubic interpolation of the field at a given position.
  * \param[in] (x,y) the position to consider.
  * \return The bicubic interpolation. */
-double bicubic_interp::f(double x,double y) {
+vec3 bicubic_interp::f(double x,double y) {
 	grid_setup(x,y);
 	return fmap(x,y);
 }
@@ -137,9 +137,9 @@ double bicubic_interp::f(double x,double y) {
  * \param[in] (x,y) the position to consider.
  * \param[out] (fx,fy) the gradient of the interpolation.
  * \return The bicubic interpolation. */
-double bicubic_interp::f_grad_f(double x,double y,double &fx,double &fy) {
+vec3 bicubic_interp::f_grad_f(double x,double y,vec3 &fx,vec3 &fy) {
 	grid_setup(x,y);
-	fx=xsp*(yl(a+4,y)+x*(2*yl(a+8,y)+3*x*yl(a+12,y)));
+	fx=xsp*(yl(a+4,y)+x*(2.*yl(a+8,y)+3.*x*yl(a+12,y)));
 	fy=ysp*(dyl(a,y)+x*(dyl(a+4,y)+x*(dyl(a+8,y)+x*dyl(a+12,y))));
 	return fmap(x,y);
 }
@@ -149,9 +149,9 @@ double bicubic_interp::f_grad_f(double x,double y,double &fx,double &fy) {
  * \param[in] ap a pointer in the table in which to set the coefficients.
  * \param[in] (c1,c2,c3) the intermediate values from which to compute the
  *			 table coefficients. */
-void bicubic_interp::fill_ad(double *ap,double c1,double c2,double c3) {
+void bicubic_interp::fill_ad(vec3 *ap,vec3 c1,vec3 c2,vec3 c3) {
 	*ap=c1;
-	ap[1]=-1.5*c1+2*c2-0.5*c3;
+	ap[1]=-1.5*c1+2.*c2-0.5*c3;
 	ap[2]=0.5*c1-c2+0.5*c3;
 	ap[3]=0;
 }
@@ -161,7 +161,7 @@ void bicubic_interp::fill_ad(double *ap,double c1,double c2,double c3) {
  * \param[in] ap a pointer in the table in which to set the coefficients.
  * \param[in] (c0,c1,c2) the intermediate values from which to compute the
  *			 table coefficients. */
-void bicubic_interp::fill_au(double *ap,double c0,double c1,double c2) {
+void bicubic_interp::fill_au(vec3 *ap,vec3 c0,vec3 c1,vec3 c2) {
 	*ap=c1;
 	ap[1]=-0.5*c0+0.5*c2;
 	ap[2]=0.5*c0-c1+0.5*c2;
@@ -173,10 +173,10 @@ void bicubic_interp::fill_au(double *ap,double c0,double c1,double c2) {
  * \param[in] ap a pointer in the table in which to set the coefficients.
  * \param[in] (c0,c1,c2,c3) the intermediate values from which to compute the
  *			    table coefficients. */
-void bicubic_interp::fill_a(double *ap,double c0,double c1,double c2,double c3) {
+void bicubic_interp::fill_a(vec3 *ap,vec3 c0,vec3 c1,vec3 c2,vec3 c3) {
 	*ap=c1;
 	ap[1]=-0.5*c0+0.5*c2;
-	ap[2]=c0-2.5*c1+2*c2-0.5*c3;
+	ap[2]=c0-2.5*c1+2.*c2-0.5*c3;
 	ap[3]=-0.5*c0+1.5*c1-1.5*c2+0.5*c3;
 }
 
@@ -185,7 +185,7 @@ void bicubic_interp::fill_a(double *ap,double c0,double c1,double c2,double c3) 
  * \param[in] (x,y) the start position of the integral.
  * \param[in] (xe,ye) the end position of the integral.
  * \return The line integral result. */
-double bicubic_interp::line_integral(double x,double y,double xe,double ye) {
+vec3 bicubic_interp::line_integral(double x,double y,double xe,double ye) {
 
 	// Prepare the integration prefactor
 	double lx=xe-x,ly=ye-y,ifac=sqrt(lx*lx+ly*ly),xr;
@@ -208,7 +208,7 @@ double bicubic_interp::line_integral(double x,double y,double xe,double ye) {
 	}
 
 	// Loop over rows in the grid that the line passes
-	double ans=0;
+	vec3 ans(0);
 	if(j<je) {
 		do {
 			xr=(xe*((j+1)-y)+x*(ye-(j+1)))/(ye-y);
@@ -238,8 +238,8 @@ double bicubic_interp::line_integral(double x,double y,double xe,double ye) {
  * \param[in] (x,y) the start position of the line.
  * \param[in] (xe,ye) the end position of the line.
  * \param[in,out] (xans,yans) the accumulators for the integrals. */
-double bicubic_interp::row_integral(int i,int ie,int j,double x,double y,double xe,double ye) {
-	double ans=0;
+vec3 bicubic_interp::row_integral(int i,int ie,int j,double x,double y,double xe,double ye) {
+	vec3 ans(0);
 	while(i<ie) {
 		double yr=(ye*((i+1)-x)+y*(xe-(i+1)))/(xe-x);
 		ans+=patch_integral(i,j,x,y,i+1,yr);
@@ -253,7 +253,7 @@ double bicubic_interp::row_integral(int i,int ie,int j,double x,double y,double 
  * \param[in] (x,y) the start position of the line.
  * \param[in] (xe,ye) the end position of the line.
  * \param[in,out] (xans,yans) the accumulators for the integrals. */
-double bicubic_interp::patch_integral(int i,int j,double x,double y,double xe,double ye) {
+vec3 bicubic_interp::patch_integral(int i,int j,double x,double y,double xe,double ye) {
 
 	// Four point Gaussian quadrature points and weights, capable of
 	// exactly integrating polynomials up to order 7
@@ -271,9 +271,9 @@ double bicubic_interp::patch_integral(int i,int j,double x,double y,double xe,do
 
 	// Sample the function at the quadrature points
 	double x0=x+g0*dx,y0=y+g0*dy,x1=x+g1*dx,y1=y+g1*dy,
-	       x2=x+g2*dx,y2=y+g2*dy,x3=x+g3*dx,y3=y+g3*dy,
-	       f0=fmap(x0,y0),f1=fmap(x1,y1),
-	       f2=fmap(x2,y2),f3=fmap(x3,y3);
+	       x2=x+g2*dx,y2=y+g2*dy,x3=x+g3*dx,y3=y+g3*dy;
+    vec3 f0=fmap(x0,y0),f1=fmap(x1,y1),
+	     f2=fmap(x2,y2),f3=fmap(x3,y3);
 
 	// Compute integral contributions
 	return (vert?dy:dx)*(w0*(f0+f3)+w1*(f1+f2));

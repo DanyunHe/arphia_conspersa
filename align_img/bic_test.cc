@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cmath>
 
+#include "vec3.hh"
 #include "bi_interp.hh"
 
 const double pi=3.1415926535897932384626433832795;
@@ -19,7 +20,8 @@ const int every=4;
 const double h=2*rad/sam;
 
 int main() {
-	double *u=new double[49],cth,sth,x,y,f,sum,sum2;
+	vec3 *u=new vec3[49],f,sum,sum2;
+    double cth,sth,x,y;
 
 	// Create some test data to interpolate in a checkboard pattern
 	for(int j=0;j<7;j++) for(int i=0;i<7;i++)

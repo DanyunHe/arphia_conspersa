@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 
+#include "vec3.hh"
 #include "bi_interp.hh"
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_multimin.h"
@@ -40,11 +41,11 @@ class bi_image {
 		/** The lower y coordinate of the grid. */
 		double ay;
 		/** The array of field values. */
-		double *f;
+		vec3 *f;
 		/** A second array of field values, used for field smoothing. */
-		double *g;
+		vec3 *g;
 		/** A pointer to the function values in the other class. */
-		double *of;
+		vec3 *of;
 		/** A array holding the coefficients in the best fit mapping. */
 		double *al;
 		/** The lower x-index of the box on which to consider fitting. */
@@ -78,8 +79,9 @@ class bi_image {
 		void compute_map(double *c);
 		void print_map();
 		void line_smooth(bi_image &b,double r,double theta);
-		void output_gnuplot(const char *filename,bool coords,bool primary);
+		void output_gnuplot(const char *filename,bool coords,bool primary,int chan);
 
+        void write_image(const char *filename,bool primary);
 		void project(double &proj,double *c);
 	private:
 		template<int ft>
@@ -93,8 +95,8 @@ class bi_image {
 		void chebyshev_pin(double *&T,int r,double a,double d);
 		void message(int &piter,int iter,gsl_multimin_fdfminimizer *s,double &t0);
 		void pos(double *c,double &u,double &v,int i,int j);
-		inline double gfunc(int ft,double a,double b);
-		inline double gbfunc(int ft,double a,double b,double &gb);
+		inline double gfunc(int ft,vec3 a,vec3 b);
+		inline double gbfunc(int ft,vec3 a,vec3 b,vec3 &gb);
 		inline double rshift(double s) {
 			return -s+static_cast<double>(rand())*(2*s/RAND_MAX);
 		}
