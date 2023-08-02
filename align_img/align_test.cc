@@ -15,7 +15,8 @@ int main() {
 	// Read in the two images. Set the optimization extent to be 40 pixels
 	// smaller than the full image, to prevent the method applying too much
 	// weight to the boundaries.
-	bi_image a("../imgs/im_fit.tiff",q),b("../imgs/test1.tiff",q);
+	bi_image b("../imgs/population_60+FMNH_4602205+stack_1_hw_crop_shift.tif",q);
+	bi_image a("../imgs/population_60+FMNH_4602205+stack_1_hw_crop_shift_fit.tif",q);
 
 	puts("1");
 	// Choose function minimization type. 0: (a-b)^2, 1: a*(a-b).
