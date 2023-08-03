@@ -82,6 +82,7 @@ class bi_image {
 		void output_gnuplot(const char *filename,bool coords,bool primary,int chan);
 
         void write_image(const char *filename,bool primary);
+        void write_tifimage(const char *filename,bool primary);
 		void project(double &proj,double *c);
 	private:
 		template<int ft>

@@ -718,6 +718,13 @@ void bi_image::write_image(const char* filename,bool primary) {
     delete [] rowp;
 }
 
+/** Outputs a color bitmap of the field information in TIF format, with one
+ * pixel corresponding to each field value.
+ * \param[in] filename the name of the file to write to. */
+void write_tifimage(const char *filename,bool primary){
+
+}
+
 
 /** Project transmitted image to reflected light image using matrix c
  * \param[in] a the pixel values of the image.
