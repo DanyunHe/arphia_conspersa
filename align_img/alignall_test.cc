@@ -2,38 +2,45 @@
 #include <cstring>
 #include <cstdlib>
 #include "bi_image.hh"
-#define MAX_LINE_LENGTH 1000
 
 int main() {
 	int exp=43;
 	int t=3;
 	char buf[128];
-	char fn="../imgs/select_perfect_cropped/";
-	char filename[MAX_LINE_LENGTH];
+	char filename[128];
+	char fn[]="../imgs/select_perfect_cropped/";
+	FILE* fp;
+	size_t bufsize=0;
+	size_t nread;
 
 	// q-1 is the maximum degree of polynomial to consider. dof sets the
 	// total number of degrees of freedom in the minimization.
 	const int q=2,dof=2*q*q;
 
-	FILE* ptr;
-	sprintf(buf,"%s %s",fn,"name_list.txt");
+	sprintf(buf,"%s%s",fn,"name_list.txt");
+	puts("1");
+	printf(buf);
 	fp=fopen(buf,"r");
+	puts("2");
 	if(NULL==fp){
 		printf("file can't be opened \n");
 		exit(1);
 	}
 
-	// Loop figures in the folder 
-	while(fgets(filename,MAX_LINE_LENGTH,fp))
+	// Loop figures in the folder
+	//nread=getline(&filename,&bufsize,fp);
+        //printf("zd\n",nread);	
+	for(int i=0;i<10;i++)
 	{
 		// Read in the two images. Set the optimization extent to be 40 pixels
 		// smaller than the full image, to prevent the method applying too much
 		// weight to the boundaries.
-
-		printf("processing: %s\n",filename);
-		sprintf(buf,"%s %s %s",fn,filename,"+stack_0_hw_crop.tif")
+		fscanf(fp,"%s",filename);
+		printf("processing %d: %s\n",i,filename);
+		sprintf(buf,"%s%s%s",fn,filename,"+stack_0_hw_crop.tif");
 		bi_image b(buf,q);
-		sprintf(buf,"%s %s %s",fn,filename,"+stack_0_hw_crop_fit.tif")
+		sprintf(buf,"%s%s%s",fn,filename,"+stack_0_hw_crop_fit.tif");
+		printf("%s\n",buf);
 		bi_image a(buf,q);
 
 		// Choose function minimization type. 0: (a-b)^2, 1: a*(a-b).
@@ -81,13 +88,13 @@ int main() {
 		//b.output_gnuplot("orig_bmap.gnu",true,false,0);
 	    // a.write_image("target.png",true);
 	    // b.write_image("orig.png",true);
-	    sprintf(buf,"%s %s %s",fn,filename,"+stack_0_hw_crop_mapped.png")
+	    sprintf(buf,"%s%s%s",fn,filename,"+stack_0_hw_crop_mapped.png");
 	    b.write_image(buf,false);
 
 		// Apply fit to thresholded image
 		//c.compute_map(b2.al);
 		//c.output_gnuplot("test_bmap.gnu",true,false);
 
-	}while (ch!=EOF);
+	}
 }
 

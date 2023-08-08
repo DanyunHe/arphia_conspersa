@@ -10,7 +10,7 @@ names=name_list.readlines()
 for file_name in names:
     
     print("processing: ", file_name)
-
+    file_name=file_name.strip()
     im_rl = tif.imread(fn+file_name+"+stack_0_hw_crop.tif")
     im_rl=np.array(im_rl).astype('float32');im_rl/=255.0
     im_tl = tif.imread(fn+file_name+"+stack_1_hw_crop.tif")
