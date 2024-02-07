@@ -25,11 +25,27 @@ from numpy.linalg import lstsq
 sys.path.append("/Users/danyunhe/sknw")
 import sknw
 
-class wing:
-    def __init__(self,filename):
-        self.img=mpimg.imread(filename)
+class Wing:
+    def __init__(self,foldername):
+        self.img=mpimg.imread(foldername+"/10.png")
         # gray=np.load("./population_60+FMNH_4602368_hw_outline.npy")
-        self.gray=np.load(filename)
+        self.gray=np.load(foldername+"/population_60+FMNH_4602368_hw_outline.npy")
+        self.lmk_data=pd.read_csv(foldername+'/CollectedData_danyun.csv')
+        
+        # rescale landmarks
+        img0_x=np.zeros(30)
+        img0_y=np.zeros(30)
+        
+        img_idx=10
+
+        for i in range(30):
+            img0_x[i]=float(self.lmk_data.iloc[2+img_idx,3+i*2])
+            img0_y[i]=float(self.lmk_data.iloc[2+img_idx,3+i*2+1])
+        
+        xfac=3.4
+        yfac=3.4
+        self.img_x=img0_x*xfac
+        self.img_y=img0_y*yfac
         
         #vein:1 \\\\otherwise: 0
         binary=self.gray.copy()
@@ -63,9 +79,9 @@ class wing:
             largest_components.append(sorted(nx.connected_components(graph), key=len, reverse=True)[ii])
             G_sub.append(graph.subgraph(largest_components[ii]))
 
-        G_subgraphs=nx.compose_all(G_sub)
+        self.G_subgraphs=nx.compose_all(G_sub)
         # Get all the nodes from the graph 
-        self.all_nodes=G_subgraphs.nodes()
+        self.all_nodes=self.G_subgraphs.nodes()
         self.N_nodes=len(self.all_nodes)
         #draw_vein_network(G_subgraphs)
 
@@ -107,7 +123,7 @@ class wing:
         edge_list=[]
         for i in range(20):
             node_id=asc_dis[i]
-            edge_list=edge_list+list(G_subgraphs.edges(node_id))
+            edge_list=edge_list+list(self.G_subgraphs.edges(node_id))
         N_edges=len(edge_list)
 
 
@@ -187,7 +203,10 @@ class wing:
         return xl,yl, xr,yr
 
 
-
+    #lmk1: left landmark point
+    #lmk2: mid landark point
+    #lmk3: right landmark point
+    #is_first_vein: if it's on the first primary vein 
     def find_interp(self,lmk1,lmk2,lmk3,is_first_vein=False):
         #Collect the three points on/near vein
         mid_pt=np.zeros(2)
@@ -301,29 +320,56 @@ class wing:
                             
         vein_line_seg_list=np.array(vein_line_seg_list)
         
-        return vein_line_seg_list
+        reg=LinearRegression().fit(vein_line_seg_list[:,0].reshape(-1,1),vein_line_seg_list[:,1])
+        Ypred=reg.predict(vein_line_seg_list[:,0].reshape(-1,1))
+        
+        new_r=np.array([p3[0],reg.predict(p3[0].reshape(-1,1))])
+        result=np.vstack((new_r,vein_line_seg_list))
+        
+        # if(is_first_vein):
+        #     tmp=np.hstack((vein_line_seg_list[:,0].reshape(-1,1),Ypred.reshape(-1,1)))
+        #     result=np.vstack((new_r,tmp))
+        
+        return result
+    
+    def find_all_interp(self):
+        
+        result=[]
+        # vein 1:
+        lm_idx=1
+        lmk1=[self.img_x[lm_idx-1],self.img_y[lm_idx-1]]
+        lmk2=[self.img_x[lm_idx+11+8],self.img_y[lm_idx+11+8]]
+        lmk3=[self.img_x[lm_idx+11+1],self.img_y[lm_idx+11+1]]
+        
+        pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=True)
+        result.append(pt)
+        
+        # vein 2-7:
+        for i in range(6):
+            print(i)        
+            lm_idx=i+2
+            lmk1=[self.img_x[lm_idx*2-2],self.img_y[lm_idx*2-2]]
+            lmk2=[self.img_x[lm_idx+11+8],self.img_y[lm_idx+11+8]]
+            lmk3=[self.img_x[lm_idx+11+1],self.img_y[lm_idx+11+1]]
+            
+            pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=False)
+            result.append(pt)
+
+        return result      
 
 
 
 if __name__=="__main__":
+    
+    a=Wing("./sample_data")
 
-    img_idx=10
-    dir="./images/"
-    # img=cv2.imread(dir+'0.png')
-    img0 = mpimg.imread(dir+'%d.png'%img_idx)
-
-    ny0=len(img0[:, 0])  # y
-    nx0=len(img0[0, :])  # x
     
-    lm_idx=1
-    lmk1=[img_x[lm_idx-1],img_y[lm_idx-1]]
-    lmk2=[img_x[lm_idx+11+8],img_y[lm_idx+11+8]]
-    lmk3=[img_x[lm_idx+11+1],img_y[lm_idx+11+1]]
+    result=a.find_all_interp()
+    print(result)
     
+    plt.imshow(a.gray)
+    for i in range(7):
+        plt.plot(result[i][:,0],result[i][:,1],"^-",label="%d"%i)          
     
-    a=wing("filename")
-    pt=a.find_interp(....)
-    
-    a.map()
-    
-    
+    plt.legend()
+    plt.savefig("find_all_pt2")
