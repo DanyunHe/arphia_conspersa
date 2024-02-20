@@ -112,9 +112,10 @@ class Wing:
         v2_u = self.unit_vector(v2)
         return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-    #given (ptx,pty)
-    #find edge line segment close to pt,
-    #and align with direction given by [dirlx,dirly][dirrx,dirry], l-left, r-right
+    def getEquidistantPoints(self,p1, p2, num_equi_pts):
+        return list(zip(np.linspace(p1[0], p2[0], num_equi_pts),
+                np.linspace(p1[1], p2[1], num_equi_pts)))
+    
     def find_lineup_edge(self,ptx,pty,dirlx,dirly,dirrx,dirry):
         mid_pt=np.array([ptx,pty]).astype(np.float32)
         #Find 10 closest nodes
@@ -211,7 +212,7 @@ class Wing:
             yr=edge_y0
         return xl,yl, xr,yr
 
-
+    # Use the landmarks to locate the primary veins and find the correponding line segments
     #lmk1: left landmark point
     #lmk2: mid landark point
     #lmk3: right landmark point
@@ -396,14 +397,17 @@ class Wing:
         
         result=[]
         even_result=[]
+        left_lmk_pt=[]
         # vein 1:
         lm_idx=1
         lmk1=[self.img_x[lm_idx-1],self.img_y[lm_idx-1]]
         lmk2=[self.img_x[lm_idx+11+8],self.img_y[lm_idx+11+8]]
         lmk3=[self.img_x[lm_idx+11+1],self.img_y[lm_idx+11+1]]
         
-        pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=True)
-        even_pt=self.even_pt(pt[0],pt[-1],pt,10)
+        # pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=True) 
+        new_lmk1=self.find_concave_pt(lmk1,32)
+        pt=np.vstack((lmk3,new_lmk1))
+        even_pt=self.even_pt(lmk3,new_lmk1,pt,10) # the order of points is from right to left
         
         result.append(pt)
         even_result.append(even_pt)
@@ -417,11 +421,145 @@ class Wing:
             
             pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=False)
             even_pt=self.even_pt(pt[0],pt[-1],pt,10)
+            
+            left_lmk_pt.append(pt[-1])
             result.append(pt)
             even_result.append(even_pt)
+            
+            
+        #### find the boundary points 
+        # get line segment in the first section 
+        a=[self.img_x[27],self.img_y[27]]
+        b=[self.img_x[28],self.img_y[28]]
+        bdy_pt=self.find_hbdy(a,b)
 
-        return result,even_result    
+        a=[self.img_x[28],self.img_y[28]]
+        b=[self.img_x[29],self.img_y[29]]
+        bdy_pt2=self.find_hbdy(a,b)
+        
+        a=[self.img_x[19],self.img_y[19]]
+        # b=[self.img_x[12],self.img_y[12]]
+        b=left_lmk_pt[5]
+        right_bdy_pt,pt=self.find_rbdy(a,b)
+        
+        left_bdy_pt=[]
+        lbp,pt=self.find_vbdy(new_lmk1,left_lmk_pt[0],num_pt=10)
+        left_bdy_pt.append(lbp)
+        for i in range(5):
+            # a=[self.img_x[i],self.img_y[i]]
+            # b=[self.img_x[i+1],self.img_y[i+1]]
+            if i==4:
+                lbp,pt=self.find_vbdy(left_lmk_pt[i],left_lmk_pt[i+1],num_pt=4)
+            else:
+                lbp,pt=self.find_vbdy(left_lmk_pt[i],left_lmk_pt[i+1],num_pt=6)
+            
+            left_bdy_pt.append(lbp)
+       
+        a=bdy_pt[1]
+        # b=[self.img_x[0],self.img_y[0]]
+        b=new_lmk1
+        lbp,pt=self.find_vbdy(a,b,num_pt=8)
+        left_bdy_pt.append(lbp)
+        left_bdy_pt=np.vstack(left_bdy_pt)
+        bdy_result=np.vstack((bdy_pt,bdy_pt2,left_bdy_pt,right_bdy_pt))
 
+        return result,even_result,bdy_result    
+    # Find the corner point (left end point of the first vein) near the given pt position
+    # num_equi_pts: interval: 50 pixel
+    def find_concave_pt(self,pt,num_equi_pts=16):
+        #ML corner pt 
+        ml_x=pt[0]
+        ml_y=pt[1]
+        box_length=800
+        box_ax=0
+        box_bx=int(ml_x+box_length/2)
+        box_ay=int(ml_y-box_length/2)
+        box_by=int(ml_y+box_length/2)
+        
+        # img=cv2.imread(base_dir+'population_{}+FMNH_{}_hw_1.png'.format(rpopulation, rspecies))
+        img=self.img
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
+        #Make binary
+        gray[gray!=0]=255 #255 wing; 0 background
+        # plt.imshow(gray)
+        #Box intersection point of box with binary image
+        #shoot horizontal line
+        bdryPt=[]
+        for j in [box_ay,box_by]:
+            for i in range(box_ax,box_bx):
+                if gray[j,i]==255:
+                    bdryPt.append([i,j])
+                    break
+        
+        #Get equi-distant points on line segment defined by bdryPts
+        slope_m=1.0*(bdryPt[1][1]-bdryPt[0][1])/(bdryPt[1][0]-bdryPt[0][0])
+        equi_dis_pts_line=self.getEquidistantPoints(bdryPt[0], bdryPt[1], num_equi_pts)
+        equi_dis_pts_line=np.asarray(equi_dis_pts_line)
+
+    # plt.imshow(gray)
+    # plt.scatter(equi_dis_pts_line[:,0],equi_dis_pts_line[:,1],s=5,c="red")
+
+        #Project equi-distant points on shape boundary
+        wing_box_bdry_pts=[]
+        for pti in range(len(equi_dis_pts_line)):
+            ptix=equi_dis_pts_line[pti][0]
+            ptiy=equi_dis_pts_line[pti][1]
+            #end pts are already on bdry
+            if pti==0 or pti==len(equi_dis_pts_line)-1:
+                wing_box_bdry_pts.append([ptix,ptiy])
+            #collect interior projected pts
+            else:
+                ortho_slope_m=-1.0/slope_m
+                i=box_ax
+                continue_try=True
+                while continue_try:
+                    ytemp=int(ortho_slope_m*(i-ptix)+ptiy)
+                    if gray[ytemp,i]==255:
+                        wing_box_bdry_pts.append([i,ytemp])
+                        continue_try=False
+                    i=i+1
+        wing_box_bdry_pts=np.asarray(wing_box_bdry_pts)
+
+
+    # plt.imshow(gray)
+    # plt.scatter(wing_box_bdry_pts[:,0],wing_box_bdry_pts[:,1],s=5,c="red")
+
+
+    #Loop through points, can calculate the angle in between consecutive line segments
+        pti_concave=[]
+        for pti in range(1,len(wing_box_bdry_pts)-1):
+            prev_pt=wing_box_bdry_pts[pti-1]
+            current_pt=wing_box_bdry_pts[pti]
+            next_pt=wing_box_bdry_pts[pti+1]
+            
+            mid_pt_prev_next=0.5*(prev_pt+next_pt)
+            vmid=mid_pt_prev_next-current_pt
+            if vmid[0]!=0 and vmid[1]!=0:
+                vmid=self.unit_vector(vmid)
+                
+                #go in vmid direction for 50 pixel
+                test_pt=current_pt+25*vmid
+                #if in background
+                if gray[int(test_pt[1]),int(test_pt[0])]==0:
+                    pti_concave.append(pti)
+
+        angles=np.zeros(len(pti_concave))
+        for i in range(len(pti_concave)):
+            pti=pti_concave[i]
+            
+            prev_pt=wing_box_bdry_pts[pti-1]
+            current_pt=wing_box_bdry_pts[pti]
+            next_pt=wing_box_bdry_pts[pti+1]
+            
+            v1=prev_pt-current_pt
+            v2=next_pt-current_pt
+            
+            angles[i]=self.angle_between(v1,v2)
+
+        index_min_angle=np.argmin(angles)
+        pti_coner=pti_concave[index_min_angle]
+        
+        return np.array([wing_box_bdry_pts[pti_coner,0],wing_box_bdry_pts[pti_coner,1]])
     ######### Find interpolation points for the given image and landmark ##########
 
     # find the bottom boundary points 
@@ -545,8 +683,11 @@ class Wing:
 
         return final_result
 
+    
+
 if __name__=="__main__":
     
+    # can use idx=3, 10
     a=Wing("./sample_data",10)
 
     # find points on a single vein
@@ -566,15 +707,17 @@ if __name__=="__main__":
     plt.savefig("find_even_pt")
     
     plt.close('all')
-    result,even_result=a.find_all_interp()
+    result,even_result,bdy_result=a.find_all_interp()
     # print(result)
     np.save(a.name+"_pt",even_result)
+    np.save(a.name+"_bdy",bdy_result)
     
     plt.imshow(a.gray)
     for i in range(7):
         plt.plot(result[i][:,0],result[i][:,1],".-")    
         plt.plot(even_result[i][:,0],even_result[i][:,1],"^")     
     
+    plt.plot(bdy_result[:,0],bdy_result[:,1],'.')
     plt.legend()
     plt.savefig(a.name+"_find_all_pt2")
     
@@ -583,13 +726,24 @@ if __name__=="__main__":
     plt.plot(a.img_x,a.img_y,"o")
     plt.savefig(a.name+"_lmk")
     
+    # plt.close("all")
+    # bdy_pt=a.find_all_bdy()
+    # print(bdy_pt.shape)
+    # np.save(a.name+"_bdy_pt",bdy_pt)
+    # plt.imshow(a.gray)
+    # # plt.plot(pt[:,0],pt[:,1],'ro')
+    # plt.plot(bdy_pt[:,0],bdy_pt[:,1],'.')
+        
+    # plt.savefig(a.name+"_bdy")
+    
+    # find cornor point 
+    pt=a.find_concave_pt([a.img_x[0],a.img_y[0]],32)
     plt.close("all")
-    bdy_pt=a.find_all_bdy()
-    print(bdy_pt.shape)
-    np.save(a.name+"_bdy_pt",bdy_pt)
+
     plt.imshow(a.gray)
     # plt.plot(pt[:,0],pt[:,1],'ro')
-    plt.plot(bdy_pt[:,0],bdy_pt[:,1],'.')
+    plt.plot(pt[0],pt[1],'.')
         
-    plt.savefig(a.name+"_bdy")
+    plt.savefig(a.name+"_corner")
+    
     
