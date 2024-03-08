@@ -27,21 +27,29 @@ import sknw
 
 class Wing:
     def __init__(self,foldername,img_idx):
-        if img_idx==10:
-            self.img=mpimg.imread(foldername+"/10.png")
-            # gray=np.load("./population_60+FMNH_4602368_hw_outline.npy")
-            self.gray=np.load(foldername+"/population_60+FMNH_4602368_hw_outline.npy")
-            self.name="population_60+FMNH_4602368_hw"
-            self.xfac=3.4
-            
-        if img_idx==3:
-            self.img=mpimg.imread(foldername+"/3.png")
-            # gray=np.load("./population_60+FMNH_4602368_hw_outline.npy")
-            self.gray=np.load(foldername+"/population_60+FMNH_4602200_hw_outline.npy")
-            self.name="population_60+FMNH_4602200_hw"
-            self.xfac=3.74
         
+        self.img=mpimg.imread("./images/%d.png"%img_idx)
+        new_img=mpimg.imread("./images/new_%d.png"%img_idx)
+        dlc_img=mpimg.imread('./wing_47-danyun-2023-12-11/labeled-data/out47/img%02d.png'%img_idx)
+        [x3,y3,z3]=dlc_img.shape
         [self.x1,self.y1,self.z1]=self.img.shape
+        [x2,y2]=new_img.shape
+        self.xfac=self.y1/y2
+        self.yfac=self.xfac/x3*x2
+
+        # gray=np.load("./population_60+FMNH_4602368_hw_outline.npy")
+        self.name_list= open("./images/rename.txt").read().split()
+        self.name=self.name_list[img_idx*2][:-6]
+        self.gray=np.load("./outline/"+self.name+"_outline.npy")
+        # self.name="population_60+FMNH_4602368_hw"
+            
+        # if img_idx==3:
+        #     self.img=mpimg.imread(foldername+"/3.png")
+        #     # gray=np.load("./population_60+FMNH_4602368_hw_outline.npy")
+        #     self.gray=np.load(foldername+"/population_60+FMNH_4602200_hw_outline.npy")
+        #     self.name="population_60+FMNH_4602200_hw"
+        #     self.xfac=3.74
+        
         self.lmk_data=pd.read_csv(foldername+'/CollectedData_danyun.csv')
         
         # rescale landmarks
@@ -54,7 +62,7 @@ class Wing:
         
         
         self.img_x=img0_x*self.xfac
-        self.img_y=img0_y*self.xfac
+        self.img_y=img0_y*self.yfac
         
         #vein:1 \\\\otherwise: 0
         binary=self.gray.copy()
@@ -135,8 +143,6 @@ class Wing:
             node_id=asc_dis[i]
             edge_list=edge_list+list(self.G_subgraphs.edges(node_id))
         N_edges=len(edge_list)
-
-
 
         #First, sort edges based on distance to the given node
         #Then, loop through the edges:
@@ -336,6 +342,10 @@ class Wing:
         new_r=np.array([p3[0],reg.predict(p3[0].reshape(-1,1))])
         result=np.vstack((new_r,vein_line_seg_list))
         
+        # check if the final result agree with original landmark direction  
+        if np.linalg.norm(result[-1]-lmk1)>100:
+            return np.vstack((lmk3,lmk2,lmk1))
+        
         # save the linear regression points for the first vein 
         if(is_first_vein):
             tmp=np.hstack((vein_line_seg_list[:,0].reshape(-1,1),Ypred.reshape(-1,1)))
@@ -351,10 +361,20 @@ class Wing:
     def even_pt(self,a,b,line_seg,num_pt):
         
         # first find evely spaced points in [a,b]
-        xlen=b[0]-a[0]
+        # swap=False
+        # xlen=b[0]-a[0]
+        # if xlen>0:
+        #     #swap a and b
+        #     swap=True
+        #     tmp_a=a.copy()
+        #     tmp_b=b.copy()
+        #     a=tmp_b
+        #     b=tmp_a
+        xlen=b[0]-a[0]    
         ylen=b[1]-a[1]
         dx=xlen/(num_pt+1)
         dy=ylen/(num_pt+1)
+        # print("even pt: ",a,b,dx,dy)
 
         pt=np.zeros((num_pt+2,2))
         result=np.zeros((num_pt+2,2))
@@ -368,28 +388,49 @@ class Wing:
             continue_search=True
             # find the projection point on the line segments 
             while continue_search:
-                x1=line_seg[search_idx,0];y1=line_seg[search_idx,1]
-                x2=line_seg[search_idx+1,0];y2=line_seg[search_idx+1,1]
-                m=(y2-y1)/(x2-x1)
-                if m==0:
-                    x2=line_seg[search_idx+2,0];y2=line_seg[search_idx+2,1]
-                    m=(y2-y1)/(x2-x1)
+                # x1=line_seg[search_idx,0];y1=line_seg[search_idx,1]
+                # x2=line_seg[search_idx+1,0];y2=line_seg[search_idx+1,1]
+                # m=(y2-y1)/(x2-x1)
+                # if m==0:
+                #     x2=line_seg[search_idx+2,0];y2=line_seg[search_idx+2,1]
+                #     m=(y2-y1)/(x2-x1)
                     
-                x=(y3+x3/m-y2+m*x2)/(m+1/m)
-                y=m*(x-x2)+y2
+                # x=(y3+x3/m-y2+m*x2)/(m+1/m)
+                # y=m*(x-x2)+y2
+                # if x+1>=x2 and x-1<=x1:
+                #     result[i+1,0]=x
+                #     result[i+1,1]=y
+                #     continue_search=False
+                #     print(i,x,y)
+                # elif search_idx>=len(line_seg)-2:
+                #     continue_search=False
+                # else:
+                #     search_idx+=1
+                #     continue_search=True
+                p1=line_seg[search_idx,:]
+                p2=line_seg[search_idx+1,:]
+                l2=np.sum((p1-p2)**2)
+                if l2 == 0:
+                    print('a and b are the same points')
+                
+                t = np.sum((pt[i+1,:] - p1) * (p2 - p1)) / l2
                 
                 # print(x1,x2,x3,x,search_idx,i)
-                if x>=x2 and x<=x1:
-                    result[i+1,0]=x
-                    result[i+1,1]=y
+                if t >=-0.1 and t<=1.1:
+                    result[i+1,:]=p1 + t * (p2 - p1)
                     continue_search=False
                 elif search_idx>=len(line_seg)-2:
                     continue_search=False
+                    print("projectrion not found")
                 else:
                     search_idx+=1
                     continue_search=True
         result[0,:]=a
-        result[-1,:]=b       
+        result[-1,:]=b   
+        
+        # if swap:
+        #     result=np.flip(result,axis=0)
+                
         return result
     
     # Find all interpolation points and evenly spaced points 
@@ -405,27 +446,30 @@ class Wing:
         lmk3=[self.img_x[lm_idx+11+1],self.img_y[lm_idx+11+1]]
         
         # pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=True) 
-        new_lmk1=self.find_concave_pt(lmk1,32)
-        pt=np.vstack((lmk3,new_lmk1))
-        even_pt=self.even_pt(lmk3,new_lmk1,pt,10) # the order of points is from right to left
-        
+        # new_lmk1=self.find_concave_pt(lmk1,32)
+        # pt=np.vstack((lmk3,new_lmk1))
+        pt=np.vstack((lmk3,lmk2,lmk1))
+        even_pt=self.even_pt(pt[0],pt[-1],pt,10) # the order of points is from right to left
         result.append(pt)
         even_result.append(even_pt)
         
-        # vein 2-7:
+        # vein 2-6:
         for i in range(6):       
             lm_idx=i+2
             lmk1=[self.img_x[lm_idx*2-2],self.img_y[lm_idx*2-2]]
             lmk2=[self.img_x[lm_idx+11+8],self.img_y[lm_idx+11+8]]
             lmk3=[self.img_x[lm_idx+11+1],self.img_y[lm_idx+11+1]]
             
-            pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=False)
+            if i==5:
+                # vein 7: use landmarks directly 
+                pt=np.vstack((lmk3,lmk2,lmk1))
+            else:
+                pt=self.find_interp(lmk1,lmk2,lmk3,is_first_vein=False)
             even_pt=self.even_pt(pt[0],pt[-1],pt,10)
             
             left_lmk_pt.append(pt[-1])
             result.append(pt)
             even_result.append(even_pt)
-            
             
         #### find the boundary points 
         # get line segment in the first section 
@@ -443,7 +487,9 @@ class Wing:
         right_bdy_pt,pt=self.find_rbdy(a,b)
         
         left_bdy_pt=[]
-        lbp,pt=self.find_vbdy(new_lmk1,left_lmk_pt[0],num_pt=10)
+        lmk1=[self.img_x[0],self.img_y[0]]
+        # lbp,pt=self.find_vbdy(new_lmk1,left_lmk_pt[0],num_pt=10)
+        lbp,pt=self.find_vbdy(lmk1,left_lmk_pt[0],num_pt=10)
         left_bdy_pt.append(lbp)
         for i in range(5):
             # a=[self.img_x[i],self.img_y[i]]
@@ -457,7 +503,8 @@ class Wing:
        
         a=bdy_pt[1]
         # b=[self.img_x[0],self.img_y[0]]
-        b=new_lmk1
+        # b=new_lmk1
+        b=lmk1
         lbp,pt=self.find_vbdy(a,b,num_pt=8)
         left_bdy_pt.append(lbp)
         left_bdy_pt=np.vstack(left_bdy_pt)
@@ -612,6 +659,11 @@ class Wing:
                 x=int(dhy*i+pt[j,0])
                 y=int(pt[j,1]-dhx*i)
                 # print(x,y)
+                if x>=self.y1-1 or y>=self.x1-1:
+                    print(x,y)
+                    bdy_pt[j,0]=x
+                    bdy_pt[j,1]=y
+                    break
                 
                 if sum(self.img[y,x])<0.1:
                     bdy_pt[j,0]=x
@@ -620,7 +672,7 @@ class Wing:
                 
         return bdy_pt,pt
 
-    # find the left boundary points 
+    # find the right boundary points 
     def find_rbdy(self,a,b,num_pt=10):
         # get line segment 
         xlen=b[0]-a[0]
@@ -640,8 +692,14 @@ class Wing:
         dhy=dy/np.sqrt(dx*dx+dy*dy)
         for j in range(num_pt+2):
             for i in range(500):
-                x=int(pt[j,0]-dhy+i)
+                x=int(pt[j,0]-dhy*i)
                 y=int(pt[j,1]+dhx*i)
+                
+                if x>=self.y1-1:
+                    print(x,y)
+                    bdy_pt[j,0]=x
+                    bdy_pt[j,1]=y
+                    break
                 
                 if sum(self.img[y,x])<0.1:
                     bdy_pt[j,0]=x
@@ -688,29 +746,39 @@ class Wing:
 if __name__=="__main__":
     
     # can use idx=3, 10
-    a=Wing("./sample_data",10)
-
+    img_idx=int(sys.argv[1])
+    output_folder="./sample_data/"
+    a=Wing("./sample_data",img_idx)
+    '''
     # find points on a single vein
-    lm_idx=3
+    
+    lm_idx=5
     lmk1=[a.img_x[lm_idx*2-2],a.img_y[lm_idx*2-2]]
     lmk2=[a.img_x[lm_idx+11+8],a.img_y[lm_idx+11+8]]
     lmk3=[a.img_x[lm_idx+11+1],a.img_y[lm_idx+11+1]]
     pt=a.find_interp(lmk1,lmk2,lmk3,is_first_vein=False)
+    # pt=np.vstack((lmk1,lmk3))
+    # pt=np.vstack((lmk3,lmk1))
+    
     # print(pt,pt.shape)
     result=a.even_pt(pt[0],pt[-1],pt,10)
     
     # print(result)
     plt.imshow(a.gray)
+    # plt.plot(lmk1[0],lmk1[1],"o")
+    # plt.plot(lmk2[0],lmk2[1],"o")
+    # plt.plot(lmk3[0],lmk3[1],"o")
     plt.plot(result[:,0],result[:,1],"^-",label="even point")
-    plt.plot(pt[:,0],pt[:,1],"--",label="line segments")
+    plt.plot(pt[:,0],pt[:,1],"o-",label="line segments")
     plt.legend()
-    plt.savefig("find_even_pt")
+    plt.savefig(output_folder+"find_even_pt")
     
+    '''
     plt.close('all')
     result,even_result,bdy_result=a.find_all_interp()
     # print(result)
-    np.save(a.name+"_pt",even_result)
-    np.save(a.name+"_bdy",bdy_result)
+    np.save(output_folder+a.name+"_pt",even_result)
+    np.save(output_folder+a.name+"_bdy",bdy_result)
     
     plt.imshow(a.gray)
     for i in range(7):
@@ -719,12 +787,12 @@ if __name__=="__main__":
     
     plt.plot(bdy_result[:,0],bdy_result[:,1],'.')
     plt.legend()
-    plt.savefig(a.name+"_find_all_pt2")
+    plt.savefig(output_folder+a.name+"_find_all_pt2")
     
-    plt.close("all")
-    plt.imshow(a.gray)
-    plt.plot(a.img_x,a.img_y,"o")
-    plt.savefig(a.name+"_lmk")
+    # plt.close("all")
+    # plt.imshow(a.gray)
+    # plt.plot(a.img_x,a.img_y,"o")
+    # plt.savefig(output_folder+a.name+"_lmk")
     
     # plt.close("all")
     # bdy_pt=a.find_all_bdy()
@@ -737,6 +805,7 @@ if __name__=="__main__":
     # plt.savefig(a.name+"_bdy")
     
     # find cornor point 
+    '''
     pt=a.find_concave_pt([a.img_x[0],a.img_y[0]],32)
     plt.close("all")
 
@@ -744,6 +813,7 @@ if __name__=="__main__":
     # plt.plot(pt[:,0],pt[:,1],'ro')
     plt.plot(pt[0],pt[1],'.')
         
-    plt.savefig(a.name+"_corner")
+    plt.savefig(output_folder+a.name+"_corner")
+    '''
     
     
