@@ -8,7 +8,7 @@ fn="uc"
 
 # Read images
 # Reflected image
-im_rl = cv2.imread('./im_rl.tif')
+im_rl = cv2.imread('./align_img/ij/mapped.png')
 #remove background
 # im_rl = remove(im_rl)
 # convert four channels (RGBA) to three channels (RGB)
@@ -16,7 +16,7 @@ im_rl = cv2.imread('./im_rl.tif')
 im_rl=im_rl.astype(np.float64);im_rl/=255.0
 
 # Transmitted image 
-im_tl = cv2.imread('./im_tl.tif')
+im_tl = cv2.imread('./align_img/ij/target.png')
 #remove background
 # im_tl = remove(im_tl)
 # convert four channels (RGBA) to three channels (RGB)

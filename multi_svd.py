@@ -14,14 +14,17 @@ def save_comp(fn,im_rl,im_tl):
     
     # Choose a long rectangle range 
     x1=N//2-1000;x2=N//2+1000
-    y1=M//2-500;y2=M//2+500
+    y1=M//2;y2=M//2+500
 
     # y1=1500;x1=1000;y2=2000;x2=3000
     #pick window 1
     crop_im_rl=im_rl[x1:x2,y1:y2,:]
     crop_im_tl=im_tl[x1:x2,y1:y2,:]
 
-    io.imsave("%s_crop1.png"%fn,crop_im_rl)
+    print("crop", crop_im_rl)
+
+    
+    io.imsave("%s_crop1.png"%fn,(crop_im_rl*255).astype(np.uint8))
     # Get the dimension of image
     (N,M,z)=crop_im_rl.shape
     print(N,M)
@@ -143,20 +146,22 @@ def save_comp(fn,im_rl,im_tl):
     pos=np.transpose(pos, (1, 0))
     neg=np.transpose(neg, (1, 0))
 
-    io.imsave("%s_hw_1.png"%fn,result)
-    io.imsave("%s_hw_1_pos.png"%fn,pos)
-    io.imsave("%s_hw_1_neg.png"%fn,neg)
+    io.imsave("%s_hw_1.png"%fn,(result*255).astype(np.uint8))
+    io.imsave("%s_hw_1_pos.png"%fn,(pos*255).astype(np.uint8))
+    io.imsave("%s_hw_1_neg.png"%fn,(neg*255).astype(np.uint8))
 
 
 if __name__=="__main__":
     
-    folder_name="./images_align/select_perfect_cropped/"
+    folder_name="./align_img/result/"
+    file_name="test"
     
-    file_name="population_60+FMNH_4602200"
+    # file_name="population_60+FMNH_4602200"
     
      # Read images
     # Reflected image
-    im_rl = cv2.imread(folder_name+file_name+'+stack_0_hw_crop_mapped.png')
+    im_rl = cv2.imread('./align_img/mapped.png')
+    # im_rl = cv2.imread(folder_name+file_name+'+stack_0_hw_crop_mapped.png')
     print(type(im_rl))
     #remove background
     # im_rl = remove(im_rl)
@@ -167,7 +172,8 @@ if __name__=="__main__":
     im_rl=np.transpose(im_rl, (1, 0, 2))
 
     # Transmitted image 
-    im_tl = cv2.imread(folder_name+file_name+'+stack_1_hw_crop.tif')
+    # im_tl = cv2.imread(folder_name+file_name+'+stack_1_hw_crop.tif')
+    im_tl = cv2.imread('./align_img/target.png')
 
     #remove background
     # im_tl = remove(im_tl)
