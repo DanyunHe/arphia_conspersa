@@ -153,15 +153,14 @@ def save_comp(fn,im_rl,im_tl):
 
 if __name__=="__main__":
     
-    folder_name="./align_img/result/"
-    file_name="test"
+    folder_name="./imgs/population_34/"
     
-    # file_name="population_60+FMNH_4602200"
+    file_name="population_34+FMNH_4669526"
     
      # Read images
     # Reflected image
-    im_rl = cv2.imread('./align_img/mapped.png')
-    # im_rl = cv2.imread(folder_name+file_name+'+stack_0_hw_crop_mapped.png')
+    # im_rl = cv2.imread('./imgs/population_34/mapped.png')
+    im_rl = cv2.imread(folder_name+file_name+'+stack_0_hw_crop_mapped.png')
     print(type(im_rl))
     #remove background
     # im_rl = remove(im_rl)
@@ -172,8 +171,8 @@ if __name__=="__main__":
     im_rl=np.transpose(im_rl, (1, 0, 2))
 
     # Transmitted image 
-    # im_tl = cv2.imread(folder_name+file_name+'+stack_1_hw_crop.tif')
-    im_tl = cv2.imread('./align_img/target.png')
+    im_tl = cv2.imread(folder_name+file_name+'+stack_1_hw_crop.tif')
+    # im_tl = cv2.imread('./align_img/target.png')
 
     #remove background
     # im_tl = remove(im_tl)

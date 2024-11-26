@@ -3,14 +3,13 @@ import tifffile as tif
 
 
 # read all cropped images in a folder and do svd 
-fn="../imgs/select_perfect_cropped/"
+fn="../imgs/population_173/"
 name_list=open(fn+"name_list.txt",'r')
 names=name_list.readlines()
 
 for file_name in names:
-    
-    print("processing: ", file_name)
     file_name=file_name.strip()
+    print("processing: ", file_name)
     im_rl = tif.imread(fn+file_name+"+stack_0_hw_crop.tif")
     im_rl=np.array(im_rl).astype('float32');im_rl/=255.0
     im_tl = tif.imread(fn+file_name+"+stack_1_hw_crop.tif")

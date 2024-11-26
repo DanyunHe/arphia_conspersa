@@ -10,14 +10,14 @@ int main() {
 
 	// q-1 is the maximum degree of polynomial to consider. dof sets the
 	// total number of degrees of freedom in the minimization.
-	const int q=2,dof=2*q*q;
+	const int q=1,dof=2*q*q;
 
 	// Read in the two images. Set the optimization extent to be 40 pixels
 	// smaller than the full image, to prevent the method applying too much
 	// weight to the boundaries.
 	
-	bi_image b("../imgs/population_34/population_34+FMNH_4669648+stack_0_hw_crop.tif",q);
-	bi_image a("../imgs/population_34/population_34+FMNH_4669648+stack_1_hw_crop.tif",q);
+	bi_image b("../imgs/population_34/population_34+FMNH_4669526+stack_0_hw_crop.tif",q);
+	bi_image a("../imgs/population_34/population_34+FMNH_4669526+stack_1_hw_crop.tif",q);
 
 	puts("1");
 	// Choose function minimization type. 0: (a-b)^2, 1: a*(a-b).
@@ -27,7 +27,7 @@ int main() {
 	b.chebyshev_pin();
 	puts("2");
 	// Truncate fitting region
-	b.ilo+=40;b.ihi-=2000;
+	b.ilo+=40;b.ihi-=40;
 
 	b.jlo+=40;b.jhi-=40;
 

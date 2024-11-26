@@ -6,16 +6,17 @@
 int main() {
 	int exp=43;
 	int t=3;
+	int num_img=13;
 	char buf[128];
 	char filename[128];
-	char fn[]="../imgs/select_perfect_cropped/";
+	char fn[]="../imgs/population_173/";
 	FILE* fp;
 	size_t bufsize=0;
 	size_t nread;
 
 	// q-1 is the maximum degree of polynomial to consider. dof sets the
 	// total number of degrees of freedom in the minimization.
-	const int q=2,dof=2*q*q;
+	const int q=1,dof=2*q*q;
 
 	sprintf(buf,"%s%s",fn,"name_list.txt");
 	puts("1");
@@ -30,7 +31,7 @@ int main() {
 	// Loop figures in the folder
 	//nread=getline(&filename,&bufsize,fp);
         //printf("zd\n",nread);	
-	for(int i=0;i<10;i++)
+	for(int i=0;i<num_img;i++)
 	{
 		// Read in the two images. Set the optimization extent to be 40 pixels
 		// smaller than the full image, to prevent the method applying too much
@@ -47,10 +48,10 @@ int main() {
 		b.ftype=0;
 
 		// Pin Chebyshev polynomials to match the boundary
-		//b.chebyshev_pin();
+		b.chebyshev_pin();
 		// Truncate fitting region
-	//	b.ilo+=40;b.ihi-=40;
-	//	b.jlo+=40;b.jhi-=40;
+		b.ilo+=40;b.ihi-=40;
+		b.jlo+=40;b.jhi-=40;
 
 		// Create smoothed versions for fitting
 		bi_image a2(a),b2(b);
@@ -66,7 +67,7 @@ int main() {
 		for(int k=0;k<dof;k++) al[k]=0;
 
 		// Do repeated fittings at coarser levels
-	/*	int d[3]={4,2};
+		int d[3]={4,2};
 		for(int k=0;k<2;k++) {
 			printf("Fit with downsample factor %d\n",d[k]);
 			bi_image a3(a2,d[k]),b3(b2,d[k]);
@@ -75,7 +76,7 @@ int main() {
 			b3.print_map();
 			memcpy(al,b3.al,dof*sizeof(double));
 			puts("");
-		}*/
+		}
 
 		// Do final fitting at full resolution
 		puts("Final fit iteration");
