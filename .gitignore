@@ -1,32 +1,41 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
 *.so
-*.dylib
-*.dll
+*.egg-info/
+dist/
+build/
 
-# Fortran module files
-*.mod
-*.smod
+# Virtual environments
+venv/
+env/
+*.env
+*.venv
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
 
-# Executables
-*.exe
-*.out
-*.app
+# Logs
+*.log
+
+# IDEs/editors
+.vscode/
+.idea/
+
+# Mac/Unix/Windows
+.DS_Store
+Thumbs.db
+
+# === Ignore all photos/images ===
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.webp
+*.svg
+

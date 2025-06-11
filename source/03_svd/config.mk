@@ -1,0 +1,31 @@
+# C++ compiler
+cxx=g++-11 -fopenmp
+
+# Compilation flags
+cflags=-Wall -ansi -pedantic -O3
+
+# BLAS/LAPACK flags for linear algebra
+lp_lflags=-framework Accelerate
+# export LDFLAGS="-L/usr/local/opt/openblas/lib"
+# export CPPFLAGS="-I/usr/local/opt/openblas/include"
+
+# FFTW flags (installed via Homebrew)
+fftw_iflags=
+fftw_lflags=-lfftw3
+
+# libpng flags (installed via Homebrew)
+png_iflags=
+png_lflags=-lpng
+export LDFLAGS="-L/opt/homebrew/opt/libpng/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/libpng/include"
+
+# matio flags (installed via Homebrew)
+matio_iflags=
+matio_lflags=-lmatio
+
+# export CFLAGS="-I/opt/homebrew/include"
+# export CPPFLAGS="-I/opt/homebrew/include"
+# export CXXFLAGS="-I/opt/homebrew/include"
+# export CXX11FLAGS="-I/opt/homebrew/include"
+# export LDFLAGS="-L/opt/homebrew/lib"
+
