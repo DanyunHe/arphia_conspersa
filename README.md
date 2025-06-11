@@ -65,7 +65,7 @@ arphia_conspersa/
     
 └── source/
     └── 01_find_pt/
-    └── 02_extractopm/
+    └── 02_extraction/
     └── 03_svd/
     └── 04_segmentation/
     └── 05_venation_network/
