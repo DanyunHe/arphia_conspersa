@@ -16,6 +16,7 @@ This repository contains code for the usage note that extracts information from 
 
 ### 📦 Installation
 
+We recommend you create a virtual environment. 
 Clone the repository and install dependencies:
 
 ```bash
