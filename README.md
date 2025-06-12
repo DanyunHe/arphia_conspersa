@@ -1,20 +1,17 @@
 Grasshopper Arphia Conspersa Wing Dataset 
 Think a better name! GHWing1970, WingMorphAC, OrthoWingMorph... 
+This repository contains code for the usage note that extracts information from images. 
 
 ---
 
-## 📘 Description
+## Quick Start
 
-This repository contains code for the usage note that extracts information from images. 
-
-## 🚀 Quick Start
-
-### 🔧 Requirements
+### Requirements
 
 - Python 3.8 or higher
 - pip (Python package manager)
 
-### 📦 Installation
+### Installation
 
 We recommend you create a virtual environment. 
 Clone the repository and install dependencies:
@@ -25,15 +22,17 @@ cd
 pip install -r requirements.txt
 ````
 
-### ▶️ Running the Application
+### Running the Application
 
 To run the software:
+
+First, download a pair of images from xxx 
 
 ```bash
 python main.py --input data.csv --output results.png
 ```
 
-#### ✅ Example:
+#### Example:
 
 ```bash
 python main.py --input examples/sample.csv --output output/graph.png
@@ -41,7 +40,7 @@ python main.py --input examples/sample.csv --output output/graph.png
 
 ---
 
-## 📝 Command Line Options
+## Command Line Options
 
 | Option      | Description               |
 | ----------- | ------------------------- |
@@ -52,7 +51,7 @@ python main.py --input examples/sample.csv --output output/graph.png
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 arphia_conspersa/
@@ -75,7 +74,7 @@ arphia_conspersa/
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ```bash
 python -m unittest discover tests
@@ -83,13 +82,13 @@ python -m unittest discover tests
 
 ---
 
-## 🧑‍💻 Contributing
+## Contributing
 
 Pull requests are welcome! Please open an issue first to discuss what you’d like to change.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
