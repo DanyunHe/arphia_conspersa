@@ -93,6 +93,8 @@ class wing_venation_network:
         self.cells_polygon=[]
         self.cells_area=[]
         self.cells_perimeter=[]
+        self.cells_circularity=None
+        self.cells_fractional_area=None
         
 
     def calculate_wing_area(self):        
@@ -111,16 +113,20 @@ class wing_venation_network:
                 self.cells_perimeter.append(self.cells_polygon[-1].length)
         self.cells_area=np.array(self.cells_area)
         self.cells_perimeter=np.array(self.cells_perimeter)
-        self.cells_fractional_area=self.cells_area/self.wing_area
         self.cells_circularity=4*np.pi*self.cells_area/(self.cells_perimeter**2)
+        self.cells_fractional_area=self.cells_area/self.wing_area
         
     
-    def plot_cell_areas(self):
-        fig,ax = plt.subplots(1,figsize=(38,23)) 
-        
-        N = len(cell_contours)
+    def plot_cells_fractional_area(self):
+        fig,ax = plt.subplots(1,figsize=(40, 30))  
+        ax.imshow(self.img0)  #Plot against the wing image
+    
+        norm = matplotlib.colors.Normalize(vmin=0, vmax=0.006)
+        cmap = plt.get_cmap('plasma')
+        colors = cmap(norm(self.cells_fractional_area))
+    
         patches = []
-        for o in cell_contours:
+        for o in self.cell_contours:
             if len(o)>0:
                 coords=[]
                 for ii in range(0,len(o)):
@@ -128,74 +134,83 @@ class wing_venation_network:
                 coords.append(o[0])
                 patches.append(matplotlib.patches.Polygon(coords,closed=True))
                 
-        collection = PatchCollection(patches,cmap="inferno")
-        collection.set_array(cells_fractional_area)
-        collection.set_clim([0.0005,0.006])
+        collection = PatchCollection(patches)
+        ax.add_collection(collection)
+        collection.set_color(colors)
         
-        im=ax.add_collection(collection)
         ax.autoscale_view()
-        plt.axis('off')
-        cbar=fig.colorbar(im, orientation='vertical')
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+
+        c_map_ax = fig.add_axes([0.9, 0.1, 0.04, 0.8])
+        cbar=matplotlib.colorbar.ColorbarBase(c_map_ax, orientation='vertical', 
+                                cmap='plasma',
+                                norm=mpl.colors.Normalize(0, 0.006))
+
+
+        cbar.set_ticks(ticks=[0,0.001,0.002,0.003,0.004,0.005,0.006], \
+                        labels=['0', '0.001','0.002','0.003','0.004', '0.005','0.006'])
+
         cbar.ax.tick_params(labelsize=40)
-        
-        plt.gca().invert_yaxis()
-        plt.title("{}\ncell fractional areas".format(sorted_file_list_cellpose[i][:-10]),fontsize=50)
-        
-        
-        plt.tight_layout()
-        plt.savefig(file_path_cell+sorted_file_list_cellpose[i][:-10]+"_hw_cell_fractional_areas.png")
+    
+        ax.set_title("population_{}+FMNH_{}_hw\ncell fractional areas".format(self.population,self.species),fontsize=50)
+        plt.savefig(self.save_dir+"/population_{}+FMNH_{}_hw_cell_fractional_areas.png".format(self.population,self.species))
         plt.close()
         
     
+    def plot_cells_circularity(self):
+        fig,ax = plt.subplots(1,figsize=(40, 30))   
+        ax.imshow(self.img0)  #Plot against the wing image
         
-        
-    
-    
-    
-    
-    
-        
-    
-        
-    
-    
-        
-    
-        #B2. figure of cell circularity/compactness:[0,1], 1 for a circle
-        #Polsby-Popper test:https://en.wikipedia.org/wiki/Polsby–Popper_test
-        fig,ax = plt.subplots(1,figsize=(38,23)) 
-        
-        N = len(cell_contours)
         patches = []
-        for o in cell_contours:
+        
+        norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
+        cmap = plt.get_cmap('magma')
+        colors = cmap(norm(self.cells_circularity))
+        
+        for o in self.cell_contours:
             if len(o)>0:
                 coords=[]
                 for ii in range(0,len(o)):
                     coords.append(o[ii])
                 coords.append(o[0])
                 patches.append(matplotlib.patches.Polygon(coords,closed=True))
-                
-            
-        collection = PatchCollection(patches,cmap="inferno")
-        collection.set_array(cells_circularity)
-        collection.set_clim([0.5,0.85])
         
-        im=ax.add_collection(collection)    
+
+        collection = PatchCollection(patches)
+        ax.add_collection(collection)
+        collection.set_color(colors)
         ax.autoscale_view()
-        plt.axis('off')
-        cbar=fig.colorbar(im, orientation='vertical')
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        
+        
+        c_map_ax = fig.add_axes([0.9, 0.1, 0.04, 0.8])
+        cbar=matplotlib.colorbar.ColorbarBase(c_map_ax, orientation='vertical', 
+                                cmap='magma',
+                                norm=mpl.colors.Normalize(0, 1))
+        
+        cbar.set_ticks(ticks=[0,0.25,0.5,0.75,1], \
+                        labels=['0', '0.25','0.5','0.75','1'])
         cbar.ax.tick_params(labelsize=40)
         
-        plt.gca().invert_yaxis()
-        plt.title("{}\ncell circularity".format(sorted_file_list_cellpose[i][:-10]),fontsize=50)
-        plt.show()
-    
-        plt.savefig(file_path_cell+sorted_file_list_cellpose[i][:-10]+"_hw_cell_circularity.png")
+        ax.set_title("population_{}+FMNH_{}_hw\ncell circularity\n".format(self.population,self.species),fontsize=50)
+        plt.savefig(self.save_dir+"/population_{}+FMNH_{}_hw_cell_circularity.png".format(self.population,self.species))
         plt.close()
+        
+        
+        
+        
     
     
     
     
+    
+    
+    
+    
+    
+        
     
     
     
