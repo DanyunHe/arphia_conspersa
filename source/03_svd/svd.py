@@ -4,11 +4,15 @@ from skimage import io
 from rembg import remove
 import cv2
 
+# input: result/02.output. transmitted and reflected light images 
+# output: svd result. 03.output 
+
+# align the two images. alignment result save as 03_mapped.png, 03_target.png  
 fn="uc"
 
 # Read images
 # Reflected image
-im_rl = cv2.imread('./align_img/ij/mapped.png')
+im_rl = cv2.imread('../../result/03_mapped.png')
 #remove background
 # im_rl = remove(im_rl)
 # convert four channels (RGBA) to three channels (RGB)
@@ -16,7 +20,7 @@ im_rl = cv2.imread('./align_img/ij/mapped.png')
 im_rl=im_rl.astype(np.float64);im_rl/=255.0
 
 # Transmitted image 
-im_tl = cv2.imread('./align_img/ij/target.png')
+im_tl = cv2.imread('../../result/03_target.png')
 #remove background
 # im_tl = remove(im_tl)
 # convert four channels (RGBA) to three channels (RGB)

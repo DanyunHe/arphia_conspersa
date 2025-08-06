@@ -1,1 +1,5 @@
 numpy == 
+deeplabcut == 2.2.10
+Pillow == 9.4.0
+pandas
+matplotlib
