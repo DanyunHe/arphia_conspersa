@@ -72,6 +72,9 @@ class wing_venation_network:
         self.cells_perimeter=[]
         self.cells_circularity=None
         
+        self.average_vein_thickness = None
+        self.venation_network = None
+        
         
 
     def calculate_wing_area(self):        
@@ -202,7 +205,7 @@ class wing_venation_network:
         thickness = cv2.multiply(distance, skeleton)*2
         
         # get average thickness for non-zero pixels
-        average_thickness = np.median(thickness[skeleton!=0])
+        self.average_vein_thickness = np.median(thickness[skeleton!=0])
     
         #C. Extract vein network (nodes, edges) from vein skeleton 
         ske = skeleton.astype(np.uint16)
@@ -218,14 +221,11 @@ class wing_venation_network:
           largest_components.append(sorted(nx.connected_components(graph), key=len, reverse=True)[ii])
           G_sub.append(graph.subgraph(largest_components[ii]))
         
-        G_subgraphs=nx.compose_all(G_sub)
-        #draw_vein_network(G_subgraphs)
-    
+        self.venation_network=nx.compose_all(G_sub)
+        
         #Associate thickness and length attributes to each edge
-        edge_thickness_list=[]
-        edge_length_list=[]
-        for (s,e) in G_subgraphs.edges():
-            ps = G_subgraphs[s][e]['pts']
+        for (s,e) in self.venation_network.edges():
+            ps = self.venation_network[s][e]['pts']
             avg_edge_thickness=0.0
             ei_npt=len(ps)
             for ei in range(0,ei_npt):
@@ -234,204 +234,227 @@ class wing_venation_network:
                 avg_edge_thickness=avg_edge_thickness+thickness[eiy,eix]
             avg_edge_thickness=avg_edge_thickness/ei_npt
             
-            G_subgraphs[s][e]['weight'] = avg_edge_thickness
-            G_subgraphs[s][e]['length'] = ei_npt
+            self.venation_network[s][e]['weight'] = avg_edge_thickness
+            self.venation_network[s][e]['length'] = ei_npt
             
-            edge_thickness_list.append(G_subgraphs[s][e]['weight'])
-            edge_length_list.append(G_subgraphs[s][e]['length'])
+        # find boundary edges, nodes
+        self._find_graph_boundary()
+        
             
+    def save_venation_network(self):
+        # save graph object to file
+        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_vein_graph.pickle"
+        with open(save_path, 'wb') as f:
+            pickle.dump(self.venation_network, f, pickle.HIGHEST_PROTOCOL)
+   
+
             
-        #Figure: thickness of veins
-        fig,ax = plt.subplots(1,figsize=(38,23)) 
-        segx=[]
-        segy=[]
-        clist=[]
-        for (s,e) in G_subgraphs.edges():
-            ps = G_subgraphs[s][e]['pts']
-            segx.append(ps[:,1].tolist())
-            segy.append(ps[:,0].tolist())
-            clist.append(G_subgraphs[s][e]['weight'])
-            
-        segments = [np.column_stack([x, y]) for x, y in zip(segx, segy)]
-        lc = LineCollection(segments,cmap="rainbow", lw=8)
-        lc.set_array(clist)
-        lc.set_clim([10,20])
-    
-        im=ax.add_collection(lc)
-        ax.autoscale_view()
-        plt.axis('off')
-        cbar=fig.colorbar(im, orientation='vertical')
-        cbar.ax.tick_params(labelsize=40)
-    
-    
-        plt.gca().invert_yaxis()
-        plt.title("{}\nvein thickness".format(sorted_file_list_outline[i][:-12]),fontsize=50)
-        plt.show()
-    
-        plt.savefig(file_path_vein+sorted_file_list_outline[i][:-12]+"_vein_thickness.png")
+    def calculate_modularity_communities(self):
+        
+        self.modularity_communities = nx.community.greedy_modularity_communities(self.venation_network)
+        self.num_communities=len(self.modularity_communities)
+        
+        
+        
+    def plot_modularity_communities(self):
+        # Prepare color map
+        colors = cm.gist_rainbow(np.linspace(0, 1, self.num_communities))
+        
+        # Create figure
+        fig, ax = plt.subplots(figsize=(32, 23))
+        
+        # Draw edges
+        for s, e in self.venation_network.edges():
+            ps = self.venation_network[s][e]['pts']
+            ax.plot(ps[:, 1], ps[:, 0], color='black', linewidth=1)
+        
+        # Draw nodes by community
+        for idx, community in enumerate(self.modularity_communities):
+            for node in self.modularity_communities:
+                coord = np.array([self.venation_network.nodes[node]['o']])
+                ax.scatter(coord[:, 1], coord[:, 0], s=500, color=colors[idx], label=f"Community {idx}")
+        
+        # Finalize plot
+        ax.invert_yaxis()
+        ax.axis('off')
+        ax.set_title("Maximum modularity communities", fontsize=50)
+        
+        # Save and show
+        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_max_mod_communities.png"
+        plt.savefig(save_path, bbox_inches='tight')
         plt.close()
-    
-    
-        
-        
-        #Figure: modularity communities
-        c = nx.community.greedy_modularity_communities(G_subgraphs)
-        list_integers = np.array(range(0,len(c)))        
-        fig,ax = plt.subplots(1,figsize=(32,23)) 
-        # draw edges by pts
-        for (s,e) in G_subgraphs.edges():
-            ps = G_subgraphs[s][e]['pts']
-            ax.plot(ps[:,1], ps[:,0], 'k')
-            
-        #draw nodes by community 
-        nodes = G_subgraphs.nodes()
-        cict=0
-        for ci in c:
-            for ni in ci:
-                ps = np.array([nodes[ni]['o']])
-                ax.scatter(ps[:,1], ps[:,0], s=500, c=cm.gist_rainbow(list_integers[cict]/np.mean(list_integers)))
-            cict=cict+1
-        
-        ax.autoscale_view()
-        plt.gca().invert_yaxis()
-        plt.axis('off')
-        plt.title("{}\nvenation topology\nmaximum modularity communities".format(sorted_file_list_outline[i][:-12]),fontsize=50)
-        plt.show()
-        
-        plt.savefig(file_path_vein+sorted_file_list_outline[i][:-12]+"_venation_topology.png")
-        plt.close()
-            
-        
-        # find boundary edges, nodes and save graph object to file
-        fn_prefix=file_path_vein+sorted_file_list_outline[i][:-12]
-        find_graph_boundary(G_subgraphs,fn_prefix)
-        
-        
-        
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-###############################################
-################Functions######################
-###############################################
-def draw_vein_network(graph):
-    #plt.figure(figsize=(40,25))
-    plt.gca().invert_yaxis()
-    # draw edges by pts
-    for (s,e) in graph.edges():
-        ps = graph[s][e]['pts']
-        plt.plot(ps[:,1], ps[:,0], 'green')
-        
-    # draw node by o
-    nodes = graph.nodes()
-    ps = np.array([nodes[i]['o'] for i in nodes])
-    plt.scatter(ps[:,1], ps[:,0], s=70, c="r")
-    
-    
-    # title and show
-    plt.title('Build Graph')
-    plt.show()
-
-def find_graph_boundary(G2,fn_prefix):
-    nodes=G2.nodes()
-    nx.set_node_attributes(G2, 0, "boundary")
-    maxx=-1
-    maxy=-1
-    for ni in nodes:
-        #coordinate of node ni, eg. array([  70, 2644], dtype=uint16)
-        nodes[ni]['boundary']=0
-        node_xy=nodes[ni]['o']
-        if node_xy[1]>maxx:
-            maxx=node_xy[1]
-        if node_xy[0]>maxy:
-            maxy=node_xy[0]
-    NX=maxx+50
-    NY=maxy+50
-    background_temp=np.zeros((NY,NX))
-    
-    for ni in nodes:
-        #coordinate of node ni, eg. array([  70, 2644], dtype=uint16)
-        node_xy=nodes[ni]['o']
-        
-        #Incident edges to a node
-        for (s,e) in G2.edges(ni): 
-            edge_coords=G2[s][e]['pts']  
-            for [y,x] in edge_coords:
-                background_temp[y-1:y+1,x-1:x+1]=1
-
-
-    #Apply flood-fill with seed (NY-1, NX-1) to obtain a background mask 
-    background_temp=np.float32(background_temp)
-    floodval = 0.5
-    background_temp=cv2.floodFill(background_temp, None, (NX-10, NY-10), floodval)
-    background_temp=background_temp[1]
-      
-
-
-    #Found out boundary edges and nodes, denote boundary nodes and edge attribute 'boundary'=1
-    for ni in nodes:
-        #Incident edges to a node
-        for (s,e) in G2.edges(ni): 
-            edge_coords=G2[s][e]['pts']  
-            G2[s][e]['boundary']=0
-            edge_mid_loc=int(len(edge_coords)/2)
-            ptmy,ptmx=edge_coords[edge_mid_loc]
-            
-            ptiy, ptix =edge_coords[0]
-            ptey, ptex =edge_coords[-1]
-            perp_vec=np.asarray([ptiy-ptey,ptex-ptix])
-            if np.abs(ptiy-ptey)<1:
-                perp_vec=np.asarray([0,1])
-            
-            perp_vec=perp_vec/np.linalg.norm(perp_vec)
-            perx,pery=perp_vec
-            
-            dis=min(max(G2[s][e]['length']/2,3),10)
-            
-            testy,testx=int(ptmy+dis*pery),int(ptmx+dis*perx)
-            if background_temp[testy,testx]==0.5:
-                G2[s][e]['boundary']=1
-                nodes[ni]['boundary']=1
                 
-            else:
-                testy,testx=int(ptmy-dis*pery),int(ptmx-dis*perx)
-                if background_temp[testy,testx]==0.5:
-                    G2[s][e]['boundary']=1
-                    nodes[ni]['boundary']=1
-    #Loop through edges again, make sure no bdry edge left un-accounted
-    for ni in nodes:
-        #Incident edges to a node
-        for (s,e) in G2.edges(ni): 
-            if nodes[s]['boundary']==1 and nodes[e]['boundary']==1:
-                G2[s][e]['boundary']=1
+           
+    def draw_vein_network(self):
+        # Create figure and axis
+        fig, ax = plt.subplots(figsize=(38,23))
     
+        # Invert y-axis to match image coordinate system
+        ax.invert_yaxis()
     
-    # save graph object to file
-    #nx.write_gpickle(G2, fn_prefix+'_vein_graph.pickle')
-    with open(fn_prefix+'_vein_graph.pickle', 'wb') as f:
-        pickle.dump(G2, f, pickle.HIGHEST_PROTOCOL)
+        # Draw edges (veins) using stored points
+        for s, e in self.venation_network.edges():
+            ps = self.venation_network[s][e]['pts']
+            ax.plot(ps[:, 1], ps[:, 0], color='green', linewidth=1)
+    
+        # Draw nodes (junctions)
+        nodes = self.venation_network.nodes()
+        ps = np.array([nodes[i]['o'] for i in nodes])
+        ax.scatter(ps[:, 1], ps[:, 0], s=70, c="red", zorder=5)
+    
+        # Clean up axis and save
+        ax.set_title('Venation network')
+        ax.axis('off')
+        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_venation_network.png"
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
+        
+        
+    def draw_vein_thickness(self):
+        # Create figure and axis
+        fig, ax = plt.subplots(figsize=(38,23))
 
+        # Prepare line segments and their thickness (color array)
+        segx, segy, clist = [], [], []
+        for s, e in self.venation_network.edges():
+            ps = self.venation_network[s][e]['pts']
+            segx.append(ps[:, 1].tolist())  # x = column
+            segy.append(ps[:, 0].tolist())  # y = row
+            clist.append(self.venation_network[s][e]['weight'])
+    
+        segments = [np.column_stack([x, y]) for x, y in zip(segx, segy)]
+        lc = LineCollection(segments, cmap="rainbow", linewidth=8)
+        lc.set_array(np.array(clist))
+        lc.set_clim([10, 20])
+    
+        # Add to plot
+        im = ax.add_collection(lc)
+        ax.autoscale_view()
+        ax.axis('off')
+    
+        # Add colorbar
+        cbar = fig.colorbar(im, ax=ax, orientation='vertical')
+        cbar.ax.tick_params(labelsize=12)
+    
+        ax.invert_yaxis()
+        ax.set_title("Vein thickness")
+    
+        # Save figure
+        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_vein_thickness.png"
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
+            
+        
+    def _find_graph_boundary(self):
+        nodes=self.venation_network.nodes()
+        nx.set_node_attributes(self.venation_network, 0, "boundary")
+        maxx=-1
+        maxy=-1
+        for ni in nodes:
+            #coordinate of node ni, eg. array([  70, 2644], dtype=uint16)
+            nodes[ni]['boundary']=0
+            node_xy=nodes[ni]['o']
+            if node_xy[1]>maxx:
+                maxx=node_xy[1]
+            if node_xy[0]>maxy:
+                maxy=node_xy[0]
+        NX=maxx+50
+        NY=maxy+50
+        background_temp=np.zeros((NY,NX))
+        
+        for ni in nodes:
+            #coordinate of node ni, eg. array([  70, 2644], dtype=uint16)
+            node_xy=nodes[ni]['o']
+            
+            #Incident edges to a node
+            for (s,e) in self.venation_network.edges(ni): 
+                edge_coords=self.venation_network[s][e]['pts']  
+                for [y,x] in edge_coords:
+                    background_temp[y-1:y+1,x-1:x+1]=1
+
+
+        #Apply flood-fill with seed (NY-1, NX-1) to obtain a background mask 
+        background_temp=np.float32(background_temp)
+        floodval = 0.5
+        background_temp=cv2.floodFill(background_temp, None, (NX-10, NY-10), floodval)
+        background_temp=background_temp[1]
+
+        #Found out boundary edges and nodes, denote boundary nodes and edge attribute 'boundary'=1
+        for ni in nodes:
+            #Incident edges to a node
+            for (s,e) in self.venation_network.edges(ni): 
+                edge_coords=self.venation_network[s][e]['pts']  
+                self.venation_network[s][e]['boundary']=0
+                edge_mid_loc=int(len(edge_coords)/2)
+                ptmy,ptmx=edge_coords[edge_mid_loc]
+                
+                ptiy, ptix =edge_coords[0]
+                ptey, ptex =edge_coords[-1]
+                perp_vec=np.asarray([ptiy-ptey,ptex-ptix])
+                if np.abs(ptiy-ptey)<1:
+                    perp_vec=np.asarray([0,1])
+                
+                perp_vec=perp_vec/np.linalg.norm(perp_vec)
+                perx,pery=perp_vec
+                
+                dis=min(max(self.venation_network[s][e]['length']/2,3),10)
+                
+                testy,testx=int(ptmy+dis*pery),int(ptmx+dis*perx)
+                if background_temp[testy,testx]==0.5:
+                    self.venation_network[s][e]['boundary']=1
+                    nodes[ni]['boundary']=1
+                    
+                else:
+                    testy,testx=int(ptmy-dis*pery),int(ptmx-dis*perx)
+                    if background_temp[testy,testx]==0.5:
+                        self.venation_network[s][e]['boundary']=1
+                        nodes[ni]['boundary']=1
+        #Loop through edges again, make sure no bdry edge left un-accounted
+        for ni in nodes:
+            #Incident edges to a node
+            for (s,e) in self.venation_network.edges(ni): 
+                if nodes[s]['boundary']==1 and nodes[e]['boundary']==1:
+                    self.venation_network[s][e]['boundary']=1
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+            
+            
+
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        
+        
+    
+    
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
     
 
 
