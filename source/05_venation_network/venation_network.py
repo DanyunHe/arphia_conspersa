@@ -28,7 +28,7 @@ from matplotlib.collections import LineCollection
 class wing_venation_network:
     
     #Set up paths to input and output data
-    def __init__(self,population, species, base_dir, save_dir):
+    def __init__(self, population, species, base_dir, save_dir):
         
         # Specify input directory
         self.base_dir=base_dir
@@ -40,10 +40,9 @@ class wing_venation_network:
         
          
         # ====================== Read in wing image
-        self.img0=mpimg.imread(self.base_dir+'/analysis/segmentation/population_{}/svd_result//population_{}+FMNH_{}_hw_1.png'.format(self.population, self.population, self.species))    #test image
+        self.img0=mpimg.imread(self.base_dir+'/analysis/segmentation/population_{}/svd_result/population_{}+FMNH_{}_hw_1.png'.format(self.population, self.population, self.species))    #test image
         self.ny0=len(self.img0[:, 0])  # y
         self.nx0=len(self.img0[0, :])  # x
-    
         
         # ====================== Read in image that categorize vein 1, cell 0, background 0.5. 
         self.vein_cell_bg=np.load(self.base_dir+'/analysis/segmentation/population_{}/outline/population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.population, self.species))    #test image
@@ -285,7 +284,7 @@ class wing_venation_network:
         plt.close()
                 
            
-    def draw_vein_network(self):
+    def plot_vein_network(self):
         # Create figure and axis
         fig, ax = plt.subplots(figsize=(38,23))
     
@@ -310,7 +309,7 @@ class wing_venation_network:
         plt.close()
         
         
-    def draw_vein_thickness(self):
+    def plot_vein_thickness(self):
         # Create figure and axis
         fig, ax = plt.subplots(figsize=(38,23))
 
@@ -419,18 +418,88 @@ class wing_venation_network:
         
         
         
-        
-        
-        
-        
-        
-        
-        
-            
-            
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ("yes", "true", "True", "t", "1"):
+        return True
+    elif v.lower() in ("no", "false", "False", "f", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
 
+        
+        
+if __name__ == '__main__':
+    """
+    Example Command-Line Usage:
+        python venation_network.py \
+        --input_dir ./input_data \
+        --output_dir ./results \
+        --population 001 \
+        --species 123 \
+        --save_venation_network True \ 
+        --save_plot True \
+        --save_data True
+    """
     
+    # Argument parser setup
+    parser = argparse.ArgumentParser()
     
+    # Input/output
+    parser.add_argument("--input_dir", type=str, required=True, help="Path to the input directory")
+    parser.add_argument("--output_dir", type=str, required=True, help="Path to the output directory")
+    
+    # Metadata for identifying the wing
+    parser.add_argument("--population", type=str, required=True, help="Population ID")
+    parser.add_argument("--species", type=str, required=True, help="Species ID")
+
+    # Save flags
+    parser.add_argument("--save_venation_network", type=str2bool, default=True, help="Default True; Save venation network or not")
+    parser.add_argument("--save_plot", type=str2bool, default=True, help="Default True; Save plots or not")
+    parser.add_argument("--save_data", type=str2bool, default=True, help="Default True; Save stats to .txt or not")
+    
+    args = parser.parse_args()
+    
+    # Make output directory if it doesn't exist
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+    # Create and analyze the wing object
+    wing = wing_venation_network(
+        population=args.population,
+        species=args.species,
+        base_dir=args.input_dir,
+        save_dir=args.output_dir
+    )
+
+    # Compute basic measurements
+    wing.calculate_wing_area()
+    wing.calculate_domain_stats()
+    wing.calculate_venetion_network()
+    wing.calculate_modularity_communities()
+
+    # Save venation network
+    if args.save_venation_network:
+        wing.save_venation_network()
+
+    # Save plots
+    if args.save_plot:
+        wing.plot_cells_fractional_area()
+        wing.plot_cells_circularity()
+        wing.plot_vein_network()
+        wing.plot_vein_thickness()
+        wing.plot_modularity_communities()
+
+    # Save stats as .txt
+    if args.save_data:
+        stat_txt_path = os.path.join(args.output_dir, f"population_{args.population}+FMNH_{args.species}_hw_stats.txt")
+        with open(stat_txt_path, 'w') as f:
+            f.write(f"Population: {args.population}\n")
+            f.write(f"Species: {args.species}\n")
+            f.write(f"Wing area: {wing.wing_area}\n")
+            f.write(f"Number of domains: {wing.num_domains}\n")
+            f.write(f"Average vein thickness: {wing.average_vein_thickness:.3f}\n")
+            f.write(f"Number of modularity communities: {wing.num_communities}\n")
         
     
     
