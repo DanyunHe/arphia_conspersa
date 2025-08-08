@@ -28,34 +28,46 @@ from matplotlib.collections import LineCollection
 class wing_venation_network:
     
     #Set up paths to input and output data
-    def __init__(self, population, species, base_dir, save_dir):
+    def __init__(self, population, species, input_dir, save_dir):
         
         # Specify input directory
-        self.base_dir=base_dir
+        self.input_dir=input_dir
         # Specify directory to save results
-        self.save_dir=save_dir
+        self.save_dir=os.path.join(save_dir, "population_{}".format(population))
         #Specify this image population and species
         self.population=population
         self.species=species
         
+        # Make output directory if it doesn't exist
+        self.save_dir_cell = os.path.join(self.save_dir, "cell")
+        self.save_dir_vein = os.path.join(self.save_dir, "vein")
+        os.makedirs(self.save_dir_cell, exist_ok=True)
+        os.makedirs(self.save_dir_vein, exist_ok=True)
+
+        
+        
          
         # ====================== Read in wing image
-        self.img0=mpimg.imread(self.base_dir+'/analysis/segmentation/population_{}/svd_result/population_{}+FMNH_{}_hw_1.png'.format(self.population, self.population, self.species))    #test image
+        self.img0=mpimg.imread(os.path.join(self.input_dir,'population_{}/svd_result/population_{}+FMNH_{}_hw_1.png'.format(self.population, self.population, self.species)))    #test image
         self.ny0=len(self.img0[:, 0])  # y
         self.nx0=len(self.img0[0, :])  # x
         
         # ====================== Read in image that categorize vein 1, cell 0, background 0.5. 
-        self.vein_cell_bg=np.load(self.base_dir+'/analysis/segmentation/population_{}/outline/population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.population, self.species))    #test image
+        self.vein_cell_bg=np.load(os.path.join(self.input_dir,'population_{}/outline/population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.population, self.species)))    #test image
         
         # ====================== Read in cellpose segmentation info
         pattern = os.path.join(
-                                self.base_dir,
-                                'analysis/segmentation/population_{}/cellpose/population_{}+FMNH_{}_hw_*seg.npy'.format(
+                                self.input_dir,
+                                'population_{}/cellpose/population_{}+FMNH_{}_hw_*seg.npy'.format(
                                     self.population, self.population, self.species
                                 )
                             )
         # Search for matching file
         matches = glob.glob(pattern)
+        
+        if len(matches) == 0:
+            raise FileNotFoundError(f"No cellpose segmentation file found for population {self.population}, species {self.species}")
+
         
         self.wing_cellpose = np.load(matches[0], allow_pickle=True).item()
         self.cell_contours=utils.outlines_list(self.wing_cellpose['masks'])
@@ -133,8 +145,9 @@ class wing_venation_network:
         cbar.ax.tick_params(labelsize=40)
     
         ax.set_title("population_{}+FMNH_{}_hw\ncell fractional areas".format(self.population,self.species),fontsize=50)
-        plt.savefig(self.save_dir+"/population_{}+FMNH_{}_hw_cell_fractional_areas.png".format(self.population,self.species))
+        plt.savefig(os.path.join(self.save_dir_cell,"population_{}+FMNH_{}_hw_cell_fractional_areas.png".format(self.population,self.species)))
         plt.close()
+        
         
     
     def plot_cells_circularity(self):
@@ -174,7 +187,7 @@ class wing_venation_network:
         cbar.ax.tick_params(labelsize=40)
         
         ax.set_title("population_{}+FMNH_{}_hw\ncell circularity\n".format(self.population,self.species),fontsize=50)
-        plt.savefig(self.save_dir+"/population_{}+FMNH_{}_hw_cell_circularity.png".format(self.population,self.species))
+        plt.savefig(os.path.join(self.save_dir_cell,"population_{}+FMNH_{}_hw_cell_circularity.png".format(self.population,self.species)))
         plt.close()
         
         
@@ -242,7 +255,7 @@ class wing_venation_network:
             
     def save_venation_network(self):
         # save graph object to file
-        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_vein_graph.pickle"
+        save_path = os.path.join(self.save_dir_vein,f"population_{self.population}+FMNH_{self.species}_hw_vein_graph.pickle")
         with open(save_path, 'wb') as f:
             pickle.dump(self.venation_network, f, pickle.HIGHEST_PROTOCOL)
    
@@ -279,7 +292,7 @@ class wing_venation_network:
         ax.set_title("Maximum modularity communities", fontsize=50)
         
         # Save and show
-        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_max_mod_communities.png"
+        save_path = os.path.join(self.save_dir_vein, f"population_{self.population}+FMNH_{self.species}_hw_max_mod_communities.png")
         plt.savefig(save_path, bbox_inches='tight')
         plt.close()
                 
@@ -304,7 +317,7 @@ class wing_venation_network:
         # Clean up axis and save
         ax.set_title('Venation network')
         ax.axis('off')
-        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_venation_network.png"
+        save_path = os.path.join(self.save_dir_vein, f"population_{self.population}+FMNH_{self.species}_hw_venation_network.png")
         plt.savefig(save_path, bbox_inches='tight')
         plt.close()
         
@@ -339,7 +352,7 @@ class wing_venation_network:
         ax.set_title("Vein thickness")
     
         # Save figure
-        save_path = f"{self.save_dir}/population_{self.population}+FMNH_{self.species}_hw_vein_thickness.png"
+        save_path = os.path.join(self.save_dir_vein,f"population_{self.population}+FMNH_{self.species}_hw_vein_thickness.png")
         plt.savefig(save_path, bbox_inches='tight')
         plt.close()
             
@@ -434,10 +447,10 @@ if __name__ == '__main__':
     """
     Example Command-Line Usage:
         python venation_network.py \
-        --input_dir ./input_data \
-        --output_dir ./results \
-        --population 001 \
-        --species 123 \
+        --input_dir ./04_segmentation_output \
+        --output_dir ./05_venation_network_output \
+        --population 151 \
+        --species 4601939 \
         --save_venation_network True \ 
         --save_plot True \
         --save_data True
@@ -461,14 +474,12 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
-    # Make output directory if it doesn't exist
-    os.makedirs(args.output_dir, exist_ok=True)
     
     # Create and analyze the wing object
     wing = wing_venation_network(
         population=args.population,
         species=args.species,
-        base_dir=args.input_dir,
+        input_dir=args.input_dir,
         save_dir=args.output_dir
     )
 
