@@ -1,1 +1,9 @@
-numpy == 
+numpy
+numba
+matplotlib
+scikit-image
+opencv-python
+shapely
+networkx
+cellpose
+git+https://github.com/imagepy/sknw.git

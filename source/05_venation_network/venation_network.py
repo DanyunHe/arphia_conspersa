@@ -24,7 +24,6 @@ from matplotlib.collections import LineCollection
 
 
 
-
 class wing_venation_network:
     
     #Set up paths to input and output data
@@ -75,11 +74,12 @@ class wing_venation_network:
         
         #Some statistical variables
         self.num_domains=len(self.cell_contours)
+        self.cells_polygon=[]
+        
         self.wing_area=0
+        
         self.cells_area=[]
         self.cells_fractional_area=None
-        
-        self.cells_polygon=[]
         self.cells_perimeter=[]
         self.cells_circularity=None
         
@@ -252,6 +252,11 @@ class wing_venation_network:
         # find boundary edges, nodes
         self._find_graph_boundary()
         
+    def calculate_modularity_communities(self):
+        
+        self.modularity_communities = nx.community.greedy_modularity_communities(self.venation_network)
+        self.num_communities=len(self.modularity_communities)
+        
             
     def save_venation_network(self):
         # save graph object to file
@@ -260,14 +265,32 @@ class wing_venation_network:
             pickle.dump(self.venation_network, f, pickle.HIGHEST_PROTOCOL)
    
 
+    def save_stats_as_txt(self):
+        """
+        Save computed cell statistics as .txt files in the cell subfolder.
+        """
+        # ----- Save cell stats -----
+        if self.cells_area is not None:
+            np.savetxt(os.path.join(self.save_dir_cell, f"population_{self.population}+FMNH_{self.species}_hw_cells_area.txt"), self.cells_area)
+        if self.cells_perimeter is not None:
+            np.savetxt(os.path.join(self.save_dir_cell, f"population_{self.population}+FMNH_{self.species}_hw_cells_perimeter.txt"), self.cells_perimeter)
+        if self.cells_circularity is not None:
+            np.savetxt(os.path.join(self.save_dir_cell, f"population_{self.population}+FMNH_{self.species}_hw_cells_circularity.txt"), self.cells_circularity)
+        if self.cells_fractional_area is not None:
+            np.savetxt(os.path.join(self.save_dir_cell, f"population_{self.population}+FMNH_{self.species}_hw_cells_fractional_area.txt"), self.cells_fractional_area)
+
+        # ----- Save wing-level summary -----
+        with open(os.path.join(self.save_dir, f"population_{self.population}+FMNH_{self.species}_hw_summary.txt"), 'w') as f:
+            f.write(f"Population: {self.population}\n")
+            f.write(f"Species: {self.species}\n")
+            f.write(f"Wing area: {self.wing_area}\n")
+            f.write(f"Number of domains: {self.num_domains}\n")
+            if self.average_vein_thickness is not None:
+                f.write(f"Average vein thickness: {self.average_vein_thickness:.3f}\n")
+            if hasattr(self, "modularity_communities"):
+                f.write(f"Number of modularity communities: {len(self.modularity_communities)}\n")
             
-    def calculate_modularity_communities(self):
-        
-        self.modularity_communities = nx.community.greedy_modularity_communities(self.venation_network)
-        self.num_communities=len(self.modularity_communities)
-        
-        
-        
+            
     def plot_modularity_communities(self):
         # Prepare color map
         colors = cm.gist_rainbow(np.linspace(0, 1, self.num_communities))
@@ -282,7 +305,7 @@ class wing_venation_network:
         
         # Draw nodes by community
         for idx, community in enumerate(self.modularity_communities):
-            for node in self.modularity_communities:
+            for node in community:
                 coord = np.array([self.venation_network.nodes[node]['o']])
                 ax.scatter(coord[:, 1], coord[:, 0], s=500, color=colors[idx], label=f"Community {idx}")
         
@@ -446,18 +469,47 @@ def str2bool(v):
 if __name__ == '__main__':
     """
     Example Command-Line Usage:
-        python venation_network.py \
-        --input_dir ./04_segmentation_output \
-        --output_dir ./05_venation_network_output \
-        --population 151 \
-        --species 4601939 \
-        --save_venation_network True \ 
-        --save_plot True \
-        --save_data True
+        Data and plots saving default are true:
+            
+            python3 venation_network.py \
+            --input_dir 04_segmentation_output \
+            --output_dir 05_venation_network_output \
+            --population 151 --species 4601939 \
+        
+        Not saving: 
+            python3 venation_network.py \
+            --input_dir 04_segmentation_output \
+            --output_dir 05_venation_network_output \
+            --population 151 --species 4601939 \
+            --save_venation_network False \ 
+            --save_plot False \
+            --save_data False
     """
     
     # Argument parser setup
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+                description="""\
+                            Example Command-Line Usage:
+                            
+                                Data and plots saving default are True:
+                                    python3 venation_network.py \\
+                                        --input_dir 04_segmentation_output \\
+                                        --output_dir 05_venation_network_output \\
+                                        --population 151 --species 4601939
+                            
+                                Not saving:
+                                    python3 venation_network.py \\
+                                        --input_dir 04_segmentation_output \\
+                                        --output_dir 05_venation_network_output \\
+                                        --population 151 --species 4601939 \\
+                                        --save_venation_network False \\
+                                        --save_plot False \\
+                                        --save_data False
+                            """,
+                formatter_class=argparse.RawDescriptionHelpFormatter
+                )
+
+    
     
     # Input/output
     parser.add_argument("--input_dir", type=str, required=True, help="Path to the input directory")
@@ -482,16 +534,19 @@ if __name__ == '__main__':
         input_dir=args.input_dir,
         save_dir=args.output_dir
     )
+    print("created wing object")
 
     # Compute basic measurements
     wing.calculate_wing_area()
     wing.calculate_domain_stats()
     wing.calculate_venetion_network()
     wing.calculate_modularity_communities()
+    print("finished calculation")
 
     # Save venation network
     if args.save_venation_network:
         wing.save_venation_network()
+        print("saved venation network")
 
     # Save plots
     if args.save_plot:
@@ -500,17 +555,12 @@ if __name__ == '__main__':
         wing.plot_vein_network()
         wing.plot_vein_thickness()
         wing.plot_modularity_communities()
+        print("saved plots")
 
     # Save stats as .txt
     if args.save_data:
-        stat_txt_path = os.path.join(args.output_dir, f"population_{args.population}+FMNH_{args.species}_hw_stats.txt")
-        with open(stat_txt_path, 'w') as f:
-            f.write(f"Population: {args.population}\n")
-            f.write(f"Species: {args.species}\n")
-            f.write(f"Wing area: {wing.wing_area}\n")
-            f.write(f"Number of domains: {wing.num_domains}\n")
-            f.write(f"Average vein thickness: {wing.average_vein_thickness:.3f}\n")
-            f.write(f"Number of modularity communities: {wing.num_communities}\n")
+        wing.save_stats_as_txt()
+        print("saved data")
         
     
     
