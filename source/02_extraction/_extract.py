@@ -1,6 +1,3 @@
-
-
-
 import numpy as np
 import torch
 import torchvision
@@ -140,7 +137,7 @@ def _save_full_masks(fw_bool, hw_bool,img, out_dir, wing_name, new_fw_mask=None,
         cv2.imwrite("{}/{}_hw_full.tif".format(out_dir, wing_name), cv2.cvtColor(image_copy, cv2.COLOR_RGB2BGR))
         
     
-def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x0,fw_y0,hw_x1,hw_y1,fw_x1,fw_y1,body_x0,body_y0,body_x1,body_y1,body_x2,body_y2, sticky, out_dir):
+def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x0,fw_y0,hw_x1,hw_y1,fw_x1,fw_y1,body_x0,body_y0,body_x1,body_y1,body_x2,body_y2, out_dir):
     #A. Flood fill background to get background mask
     bgmask = _get_flood_fill_bg_mask(img, type01)
     
@@ -165,11 +162,7 @@ def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x
         new_fw_mask, new_hw_mask = _cleanup_masks(fw_bool=True, hw_bool=True,new_fw_mask=new_fw_mask, new_hw_mask=new_hw_mask)
         
         #Save full size wing segmentation images
-        if sticky==1:
-            _save_full_masks(fw_bool=True, hw_bool=True, img=img, out_dir=out_dir+"/sticky_full", wing_name=w_name, new_fw_mask=new_fw_mask, new_hw_mask=new_hw_mask)
-        
-        else:
-            _save_full_masks(fw_bool=True, hw_bool=True, img=img, out_dir=out_dir+"/perfect_full", wing_name=w_name, new_fw_mask=new_fw_mask, new_hw_mask=new_hw_mask)
+        _save_full_masks(fw_bool=True, hw_bool=True, img=img, out_dir=out_dir+"/perfect_full", wing_name=w_name, new_fw_mask=new_fw_mask, new_hw_mask=new_hw_mask)
       
       
     elif hw_x0!=-1 and fw_x0==-1:
@@ -210,54 +203,6 @@ def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x
       
         #Save full size wing segmentation images
         _save_full_masks(fw_bool=True, hw_bool=False, img=img, out_dir=out_dir+"/missing_full", wing_name=w_name, new_fw_mask=new_fw_mask)
-
-
-
-
-###RUN
-for wi in range(32,N_wing+1):
-
-  w_name_base=population_excel["bodyparts"][wi][:-6]
-  w_name_0=w_name_base+"_0"
-  w_name_1=w_name_base+"_1"
-
-  print("{}/{}: {}\n".format(wi, N_wing,w_name_0+".dng"))
-
-  with rawpy.imread(file_path_img+w_name_0+".dng") as raw:
-      im_0 = raw.postprocess()
-  with rawpy.imread(file_path_img+w_name_1+".dng") as raw:
-      im_1 = raw.postprocess()
-
-  bg_x=float(population_excel["background"][wi])
-  bg_y=float(population_excel["background.1"][wi])
-
-  hw_x0=float(population_excel["hind1"][wi])
-  hw_y0=float(population_excel["hind1.1"][wi])
-  fw_x0=float(population_excel["fore1"][wi])
-  fw_y0=float(population_excel["fore1.1"][wi])
-
-  hw_x1=float(population_excel["hind2"][wi])
-  hw_y1=float(population_excel["hind2.1"][wi])
-  fw_x1=float(population_excel["fore2"][wi])
-  fw_y1=float(population_excel["fore2.1"][wi])
-
-
-  body_x0=float(population_excel["bodypart1"][wi])
-  body_y0=float(population_excel["bodypart1.1"][wi])
-  body_x1=float(population_excel["bodypart2"][wi])
-  body_y1=float(population_excel["bodypart2.1"][wi])
-  body_x2=float(population_excel["bodypart3"][wi])
-  body_y2=float(population_excel["bodypart3.1"][wi])
-
-  sticky=0 #population_excel["sticky?"][wi]
-
-  #ball_x=population_excel["ball, x"][wi]
-  #ball_y=population_excel["ball, y"][wi]
-
-  extract_wing_im(predictor, im_0, 0, w_name_0, bg_x, bg_y, hw_x0,hw_y0,fw_x0,fw_y0,hw_x1,hw_y1,fw_x1,fw_y1,body_x0,body_y0,body_x1,body_y1,body_x2,body_y2, sticky)
-  extract_wing_im(predictor, im_1, 1, w_name_1, bg_x, bg_y, hw_x0,hw_y0,fw_x0,fw_y0,hw_x1,hw_y1,fw_x1,fw_y1,body_x0,body_y0,body_x1,body_y1,body_x2,body_y2, sticky)
-
-
 
 
 

@@ -123,6 +123,10 @@ def crop_wing_func(wing_0_im,wing_1_im, file_save_crop,sorted_file_list_full_0, 
     
     
     
+    
+    
+    
+    
 ### BATCH CROPPING
 pid_list=[145,151,161,173]
 for population_id in pid_list:
