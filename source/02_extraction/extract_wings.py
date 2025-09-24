@@ -1,10 +1,17 @@
 import os
+dirname = os.path.dirname(__file__)
+import sys
+sys.path.append(dirname)
+import argparse
+
 import rawpy
 import pandas as pd
 import cv2
 import torch
 from ._extract import extract_wing_im
 from ._crop import crop_wing_func
+
+
 
 
 class WingExtractionPopulation:
@@ -141,8 +148,8 @@ if __name__ == '__main__':
     # Run pipeline
     pop = WingExtractionPopulation(
         population_id=44,
-        input_dir_csv="/content/drive/My Drive/wing/wing_new_populations/",
-        input_dir_img="/content/drive/My Drive/wing/wing_new_populations/population_44_original/",
+        input_dir_csv="01_find_pt_output/", #excel location
+        input_dir_img="../../data/",
         save_dir="/content/drive/My Drive/wing/wing_new_populations/images_masks_population_44"
     )
     pop.process_population(predictor, start_index=32)
