@@ -124,9 +124,9 @@ if __name__ == "__main__":
     # sam.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
     # predictor = SamPredictor(sam)
 
-    # pop = WingExtractionPopulation(
-    #     args.population_id, args.input_dir_csv, args.input_dir_img, args.save_dir
-    # )
+    pop = WingExtractionPopulation(
+        args.population_id, args.input_dir_csv, args.input_dir_img, args.save_dir
+    )
 
     # if args.individual_index is not None:
     #     pop.process_individual(predictor, args.individual_index)
