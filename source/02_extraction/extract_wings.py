@@ -1,23 +1,20 @@
 import os
-dirname = os.path.dirname(__file__)
 import sys
-sys.path.append(dirname)
 import argparse
-
+import glob
 import rawpy
 import pandas as pd
 import cv2
 import torch
-from ._extract import extract_wing_im
-from ._crop import crop_wing_func
-
-
+from segment_anything import sam_model_registry, SamPredictor
+from _extract import extract_wing_im
+from _crop import crop_wing_func
 
 
 class WingExtractionPopulation:
     """
     Handles segmentation (SAM + flood fill) and cropping
-    of insect wings for a single population.
+    of insect wings for one or multiple species within a population.
     """
 
     def __init__(self, population_id, input_dir_csv, input_dir_img, save_dir):
@@ -26,29 +23,15 @@ class WingExtractionPopulation:
         self.input_dir_img = input_dir_img
         self.save_dir = os.path.join(save_dir, f"population_{population_id}")
 
-        # Load metadata table (drop dummy first row)
-        self.population_excel = pd.read_csv(
-            os.path.join(input_dir_csv, f"whole_label_{population_id}.csv"),
+    # ---------- helpers -------------------------------------------------------
+    def _load_table(self, pop_id):
+        df = pd.read_csv(
+            os.path.join(self.input_dir_csv, f"whole_label_{pop_id}.csv"),
             header=1
         ).iloc[1:].reset_index(drop=True)
-
-        self.n_wing = len(self.population_excel)
-
-        # Make output dirs
-        self.save_dir_perfect_full = os.path.join(self.save_dir, "perfect_full")
-        self.save_dir_missing_full = os.path.join(self.save_dir, "missing_full")
-        self.save_dir_perfect_cropped = os.path.join(self.save_dir, "perfect_cropped")
-        self.save_dir_missing_cropped = os.path.join(self.save_dir, "missing_cropped")
-        for d in [
-            self.save_dir_perfect_full,
-            self.save_dir_missing_full,
-            self.save_dir_perfect_cropped,
-            self.save_dir_missing_cropped,
-        ]:
-            os.makedirs(d, exist_ok=True)
+        return df
 
     def _load_image_pair(self, w_name_base):
-        """Read the two stack images for a given wing base name."""
         w_name_0 = f"{w_name_base}_0"
         w_name_1 = f"{w_name_base}_1"
         with rawpy.imread(os.path.join(self.input_dir_img, f"{w_name_0}.dng")) as raw:
@@ -58,7 +41,6 @@ class WingExtractionPopulation:
         return w_name_0, im0, w_name_1, im1
 
     def _coords_for_row(self, row):
-        """Extract coordinate tuples from a metadata row."""
         return dict(
             bg=(float(row["background"]), float(row["background.1"])),
             hw=[(float(row["hind1"]), float(row["hind1.1"])),
@@ -70,52 +52,47 @@ class WingExtractionPopulation:
                   (float(row["bodypart3"]), float(row["bodypart3.1"]))],
         )
 
-    def process_population(self, predictor, start_index=0):
-        """
-        Run SAM + flood fill segmentation for all wings in the population.
+    # ---------- main pipeline -------------------------------------------------
+    def process_species(self, predictor, species_id, start_index=0):
+        """Segment and crop one species (single CSV)."""
+        print(f"\n=== Processing species {species_id} ===")
+        df = self._load_table(species_id)
+        n_wing = len(df)
 
-        Args:
-            predictor: A SamPredictor object.
-            start_index: Index to start processing from (default 0).
-        """
-        for wi in range(start_index, self.n_wing):
-            row = self.population_excel.iloc[wi]
-            w_name_base = row["bodyparts"][:-6]  # strip suffix
-            print(f"{wi+1}/{self.n_wing}: {w_name_base}_0.dng")
+        # Make output dirs for this species
+        save_dir_sp = os.path.join(self.save_dir, f"species_{species_id}")
+        dirs = [
+            "perfect_full", "missing_full",
+            "perfect_cropped", "missing_cropped"
+        ]
+        for d in dirs:
+            os.makedirs(os.path.join(save_dir_sp, d), exist_ok=True)
+
+        for wi in range(start_index, n_wing):
+            row = df.iloc[wi]
+            w_name_base = row["bodyparts"][:-6]
+            print(f"{wi+1}/{n_wing}: {w_name_base}_0.dng")
 
             w_name_0, im0, w_name_1, im1 = self._load_image_pair(w_name_base)
             coords = self._coords_for_row(row)
 
-            # Stack 0
-            extract_wing_im(
-                predictor, im0, 0, w_name_0,
-                coords["bg"][0], coords["bg"][1],
-                *coords["hw"][0], *coords["fw"][0],
-                *coords["hw"][1], *coords["fw"][1],
-                *coords["body"][0], *coords["body"][1], *coords["body"][2],
-                out_dir=self.save_dir
-            )
-            # Stack 1
-            extract_wing_im(
-                predictor, im1, 1, w_name_1,
-                coords["bg"][0], coords["bg"][1],
-                *coords["hw"][0], *coords["fw"][0],
-                *coords["hw"][1], *coords["fw"][1],
-                *coords["body"][0], *coords["body"][1], *coords["body"][2],
-                out_dir=self.save_dir
-            )
+            for idx, (nm, im) in enumerate([(w_name_0, im0), (w_name_1, im1)]):
+                extract_wing_im(
+                    predictor, im, idx, nm,
+                    coords["bg"][0], coords["bg"][1],
+                    *coords["hw"][0], *coords["fw"][0],
+                    *coords["hw"][1], *coords["fw"][1],
+                    *coords["body"][0], *coords["body"][1], *coords["body"][2],
+                    out_dir=save_dir_sp
+                )
 
-    def crop_population(self, category="perfect"):
-        """
-        Batch crop masks and save cropped versions.
+        # Crop after segmentation
+        self.crop_species(save_dir_sp, category="perfect")
 
-        Args:
-            category: "perfect", "missing", or "sticky".
-        """
+    def crop_species(self, save_dir_sp, category="perfect"):
         assert category in ["perfect", "missing", "sticky"], "Invalid category"
-
-        full_dir = os.path.join(self.save_dir, f"{category}_full")
-        crop_dir = os.path.join(self.save_dir, f"{category}_cropped")
+        full_dir = os.path.join(save_dir_sp, f"{category}_full")
+        crop_dir = os.path.join(save_dir_sp, f"{category}_cropped")
         os.makedirs(crop_dir, exist_ok=True)
 
         files = sorted(os.listdir(full_dir))
@@ -123,12 +100,11 @@ class WingExtractionPopulation:
 
         for i in range(num_wings):
             print(f"{category}: {i+1}/{num_wings}")
-
             if category == "missing":
                 w0 = cv2.imread(os.path.join(full_dir, files[2*i]), -1)
                 w1 = cv2.imread(os.path.join(full_dir, files[2*i+1]), -1)
                 crop_wing_func(w0, w1, crop_dir, files[2*i], files[2*i+1])
-            else:  # perfect or sticky
+            else:
                 fw0 = cv2.imread(os.path.join(full_dir, files[4*i]), -1)
                 hw0 = cv2.imread(os.path.join(full_dir, files[4*i+1]), -1)
                 fw1 = cv2.imread(os.path.join(full_dir, files[4*i+2]), -1)
@@ -137,20 +113,39 @@ class WingExtractionPopulation:
                 crop_wing_func(hw0, hw1, crop_dir, files[4*i+1], files[4*i+3])
 
 
-if __name__ == '__main__':
-    from segment_anything import sam_model_registry, SamPredictor
+# -------------------------------------------------------------------------
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--population_id", type=int, required=True)
+    parser.add_argument("--species_id", type=int,
+                        help="Run only this species ID")
+    parser.add_argument("--all_species", action="store_true",
+                        help="Run all species CSVs in input_dir_csv")
+    parser.add_argument("--input_dir_csv", default="01_find_pt_output/")
+    parser.add_argument("--input_dir_img", default="../../data/")
+    parser.add_argument("--save_dir", default="02_extraction_output/")
+    parser.add_argument("--start_index", type=int, default=0)
+    args = parser.parse_args()
 
     # Load SAM
     sam = sam_model_registry["vit_h"](checkpoint="fine_tuned_sam_im1b.pth")
     sam.to(device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
     predictor = SamPredictor(sam)
 
-    # Run pipeline
     pop = WingExtractionPopulation(
-        population_id=44,
-        input_dir_csv="01_find_pt_output/", #excel location
-        input_dir_img="../../data/",
-        save_dir="/content/drive/My Drive/wing/wing_new_populations/images_masks_population_44"
+        population_id=args.population_id,
+        input_dir_csv=args.input_dir_csv,
+        input_dir_img=args.input_dir_img,
+        save_dir=args.save_dir
     )
-    pop.process_population(predictor, start_index=32)
-    pop.crop_population(category="perfect")
+
+    if args.all_species:
+        # find all CSVs of the pattern whole_label_*.csv
+        pattern = os.path.join(args.input_dir_csv, "whole_label_*.csv")
+        for csvfile in sorted(glob.glob(pattern)):
+            sp_id = int(os.path.basename(csvfile).split("_")[-1].split(".")[0])
+            pop.process_species(predictor, sp_id, start_index=args.start_index)
+    elif args.species_id is not None:
+        pop.process_species(predictor, args.species_id, start_index=args.start_index)
+    else:
+        parser.error("Specify either --species_id or --all_species")
