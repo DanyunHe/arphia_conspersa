@@ -120,7 +120,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # Load SAM
-    sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
+    sam = sam_model_registry["vit_h"](checkpoint="fine_tuned_sam_im1b.pth")
     sam.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
     predictor = SamPredictor(sam)
 
