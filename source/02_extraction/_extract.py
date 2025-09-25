@@ -116,13 +116,10 @@ def _correction_from_flood_fill_bg_mask(fw_bool, hw_bool, bgmask, masks_fw=None,
     
 def _cleanup_masks(fw_bool, hw_bool,new_fw_mask=None, new_hw_mask=None):
     if fw_bool:
-        #remove small disconnected components in new wing masks
-        new_fw_mask = morphology.remove_small_objects(new_fw_mask, min_size=6000)
         #close small holes in new wing masks
         new_fw_mask = morphology.binary_closing(new_fw_mask, morphology.disk(5))
         
     if hw_bool:
-        new_hw_mask = morphology.remove_small_objects(new_hw_mask, min_size=6000)
         new_hw_mask = morphology.binary_closing(new_hw_mask, morphology.disk(5))
     return new_fw_mask, new_hw_mask
 
