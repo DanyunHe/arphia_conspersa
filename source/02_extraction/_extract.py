@@ -16,6 +16,8 @@ from openpyxl import load_workbook
 
 from skimage import data, filters, color, morphology,exposure
 from skimage.segmentation import flood, flood_fill
+from skimage.measure import label
+
 
 
 #A. Flood fill background to get background mask
@@ -124,6 +126,14 @@ def _cleanup_masks(fw_bool, hw_bool,new_fw_mask=None, new_hw_mask=None):
         new_hw_mask = morphology.binary_closing(new_hw_mask, morphology.disk(5))
     return new_fw_mask, new_hw_mask
 
+def _keep_largest(mask):
+    """Return only the largest connected component of a binary mask."""
+    labels = label(mask)
+    if labels.max() == 0:  # nothing found
+        return mask
+    largest = 1 + np.argmax(np.bincount(labels.flat)[1:])  # skip background
+    return labels == largest
+
 #Save full size wing segmentation images
 def _save_full_masks(fw_bool, hw_bool,img, out_dir, wing_name, new_fw_mask=None, new_hw_mask=None):
     if fw_bool:
@@ -161,6 +171,9 @@ def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x
         #close small holes in new wing masks
         new_fw_mask, new_hw_mask = _cleanup_masks(fw_bool=True, hw_bool=True,new_fw_mask=new_fw_mask, new_hw_mask=new_hw_mask)
         
+        new_fw_mask = _keep_largest(new_fw_mask)
+        new_hw_mask = _keep_largest(new_hw_mask)
+
         #Save full size wing segmentation images
         _save_full_masks(fw_bool=True, hw_bool=True, img=img, out_dir=out_dir+"/perfect_full", wing_name=w_name, new_fw_mask=new_fw_mask, new_hw_mask=new_hw_mask)
       
@@ -181,6 +194,8 @@ def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x
         #close small holes in new wing masks
         _, new_hw_mask = _cleanup_masks(fw_bool=False, hw_bool=True, new_hw_mask=new_hw_mask)
       
+        new_hw_mask = _keep_largest(new_hw_mask)
+
         #Save full size wing segmentation images
         _save_full_masks(fw_bool=False, hw_bool=True, img=img, out_dir=out_dir+"/missing_full", wing_name=w_name, new_hw_mask=new_hw_mask)
         
@@ -200,6 +215,7 @@ def extract_wing_im(predictor, img, type01, w_name, bg_x, bg_y, hw_x0,hw_y0,fw_x
         #close small holes in new wing masks
         new_fw_mask,_ = _cleanup_masks(fw_bool=True, hw_bool=False,new_fw_mask=new_fw_mask)
       
+        new_fw_mask = _keep_largest(new_fw_mask)
       
         #Save full size wing segmentation images
         _save_full_masks(fw_bool=True, hw_bool=False, img=img, out_dir=out_dir+"/missing_full", wing_name=w_name, new_fw_mask=new_fw_mask)
