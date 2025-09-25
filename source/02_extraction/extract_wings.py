@@ -119,21 +119,21 @@ if __name__ == "__main__":
     p.add_argument("--save_dir", default="02_extraction_output/")
     args = p.parse_args()
 
-    # # Load SAM
-    # sam = sam_model_registry["vit_h"](checkpoint="fine_tuned_sam_im1b.pth")
-    # sam.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-    # predictor = SamPredictor(sam)
+    # Load SAM
+    sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
+    sam.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    predictor = SamPredictor(sam)
 
     pop = WingExtractionPopulation(
         args.population_id, args.input_dir_csv, args.input_dir_img, args.save_dir
     )
 
-    # if args.individual_index is not None:
-    #     pop.process_individual(predictor, args.individual_index)
-    # elif args.individual_name:
-    #     idx = pop.df.index[pop.df["bodyparts"].str.startswith(args.individual_name)][0]
-    #     pop.process_individual(predictor, idx)
-    # else:
-    #     pop.process_all(predictor, start_index=args.start_index)
+    if args.individual_index is not None:
+        pop.process_individual(predictor, args.individual_index)
+    elif args.individual_name:
+        idx = pop.df.index[pop.df["bodyparts"].str.startswith(args.individual_name)][0]
+        pop.process_individual(predictor, idx)
+    else:
+        pop.process_all(predictor, start_index=args.start_index)
 
     pop.crop_all(category="perfect")
