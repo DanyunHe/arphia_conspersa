@@ -9,7 +9,10 @@ def crop_wing_func(
     wing_1_im,
     file_save_crop,
     sorted_file_list_full_0,
-    sorted_file_list_full_1
+    sorted_file_list_full_1,
+    file_path_save,
+    population_id,
+    file_folder
 ):
     """
     Crop two wing-mask images with a margin and log the crop in an Excel sheet.

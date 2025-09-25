@@ -92,14 +92,17 @@ class WingExtractionPopulation:
             if category == "missing":
                 w0 = cv2.imread(os.path.join(full_dir, files[2*i]), -1)
                 w1 = cv2.imread(os.path.join(full_dir, files[2*i+1]), -1)
-                crop_wing_func(w0, w1, crop_dir, files[2*i], files[2*i+1])
+                crop_wing_func(w0, w1, crop_dir, files[2*i], files[2*i+1],
+                                self.save_dir, self.population_id, f"{category}_cropped/")
             else:
                 fw0 = cv2.imread(os.path.join(full_dir, files[4*i]), -1)
                 hw0 = cv2.imread(os.path.join(full_dir, files[4*i+1]), -1)
                 fw1 = cv2.imread(os.path.join(full_dir, files[4*i+2]), -1)
                 hw1 = cv2.imread(os.path.join(full_dir, files[4*i+3]), -1)
-                crop_wing_func(fw0, fw1, crop_dir, files[4*i], files[4*i+2])
-                crop_wing_func(hw0, hw1, crop_dir, files[4*i+1], files[4*i+3])
+                crop_wing_func(fw0, fw1, crop_dir, files[4*i], files[4*i+2],
+                                self.save_dir, self.population_id, f"{category}_cropped/")
+                crop_wing_func(hw0, hw1, crop_dir, files[4*i+1], files[4*i+3],
+                                self.save_dir, self.population_id, f"{category}_cropped/")
 
 
 # -------------------- main -------------------------
