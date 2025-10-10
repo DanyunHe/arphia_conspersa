@@ -17,11 +17,12 @@ source/
 ```
 
 ## Run step by step and validations 
+cd source 
 ### 01. Find points on the wing  
 Goal: identify different regions (background, forewing, hindwing, body) on the wing to help extraction.<br>
 Input: raw image 
 ```bash
-python find_pt.py
+python ./01_find_pt/find_pt.py
 ```
 Output: positions of pt on the wing. <br>
 Validations: check if the points on the wing (an example). 
@@ -39,10 +40,11 @@ Validations:
 Goal: Align two images and do svd that emphasis on the wing skeleton. <br>
 Input: hindwing in transmitted light and reflected light
 ```bash
-python svd.py
+bash ./03_svd/align_img/align_img.sh
+python ./03_svd/svd_img.py
 ```
 Output: grey image <br>
-Validations:
+Validations: check the alignment results. Check the svd results. 
 
 ### 04. Domain segmentation 
 Goal: segment domains and veins from the hindwing using svd image. <br>
