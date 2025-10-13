@@ -3,7 +3,7 @@
 
 #include "bi_image.hh"
 
-int main(int argc, char* argv[]) {
+int main() {
 	int exp=43;
 	int t=3;
 	char buf[128];
@@ -15,10 +15,9 @@ int main(int argc, char* argv[]) {
 	// Read in the two images. Set the optimization extent to be 40 pixels
 	// smaller than the full image, to prevent the method applying too much
 	// weight to the boundaries.
-	// arvg[1] = "../imgs/population_34/population_34+FMNH_4669526+stack_0_hw_crop.tif";
-	// arvg[2] = "../imgs/population_34/population_34+FMNH_4669526+stack_1_hw_crop.tif";
-	bi_image b(argv[1],q);
-	bi_image a(argv[2],q);
+	
+	bi_image b("../../../data/images/population_34+FMNH_4669526+stack_0_hw_crop.tif",q);
+	bi_image a("../../../data/images/population_34+FMNH_4669526+stack_1_hw_crop.tif",q);
 
 	puts("1");
 	// Choose function minimization type. 0: (a-b)^2, 1: a*(a-b).
