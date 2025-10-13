@@ -4,7 +4,7 @@
 # Exit immediately if any command fails
 set -e
 
-cd ./align_img
+cd ./03_svd/align_img
 # Read input from the command line argument 
 # Read up to two example arguments (you can add more as needed)
 ARG1=$1
@@ -21,6 +21,8 @@ make
 # ./align_single population_34+FMNH_4669526
 
 # svd 
-python3 ./svd_img.py "$@"
+cd ../
+# Run the svd image processing script with the same arguments
+python3 svd_img.py "$@"
 
 # End of script

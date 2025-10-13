@@ -40,9 +40,13 @@ Validations:
 Goal: Align two images and do svd that emphasis on the wing skeleton. <br>
 Input: hindwing in transmitted light and reflected light
 ```bash
-bash ./03_svd/align_img/align_img.sh
-python ./03_svd/svd_img.py
+bash ./03_svd/03_svd.sh $image_name
 ```
+For example, 
+```bash
+bash ./03_svd/03_svd.sh population_34+FMNH_4669526
+``` 
+The output will be saved as result/03_svd/$image_name_hw_1.png. <br>
 Output: grey image <br>
 Validations: check the alignment results. Check the svd results. 
 
