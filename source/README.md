@@ -52,12 +52,23 @@ Validations: check the alignment results. Check the svd results.
 
 ### 04. Domain segmentation 
 Goal: segment domains and veins from the hindwing using svd image. <br>
-Input: grey image
+Input: svd result from previous step.
+
 ```bash
 python segmentation.py
 ```
-Output: masks of domains. <br>
+Output: masks of domains, outline image <br>
 Validations: check if domains are correctly identified. If not, cellpose allows manual correction and retraining the model. 
+
+You will need to install cellpose first following the github https://github.com/MouseLand/cellpose?tab=readme-ov-file
+
+Then download our pretrained model and move it to your home directory under .cellpose/models/
+```bash
+mkdir -p ~/.cellpose/models/
+wget https://www.dropbox.com/s/xyz123/arphia_model.zip -O arphia_model.zip
+unzip arphia_model.zip -d ~/.cellpose/models/
+```         
+
 
 ### 05. Venation network 
 Goal: convert the masks into a graph, with vertices and edge (contain thickness). <br>
