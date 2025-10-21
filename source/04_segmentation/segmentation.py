@@ -16,21 +16,24 @@ from cellpose import plot, utils
 if __name__ == "__main__":
     
     # load cellpose model 
-    os.environ["CELLPOSE_LOCAL_MODELS_PATH"] = "/Users/danyunhe/.cellpose/models"
+    os.environ["CELLPOSE_LOCAL_MODELS_PATH"] = "/Users/dhe/.cellpose/models"
     # model_type='cyto' or 'nuclei' or 'cyto2'
-    model = models.Cellpose(model_type='CP_20230503_151910')
+    model = models.CellposeModel(model_type='CP_20230503_151910')
+    # model = models.CellposeModel(pretrained_model="/Users/dhe/.cellpose/models/cellpose_residual_on_style_on_concatenation_off_train_img_vein_2023_05_12_17_52_06.124239")
 
     # read image
-    filename = sys.argv[1]  # e.g., /path/to/image_population_34+FMNH_4669630+stack_1.png
-    img=imread(filename+'_1_pos.png')
+    folder_name =  "../../result/03_svd/"
+    file_name = "population_34+FMNH_4669526"
+    # filename = sys.argv[1]  # e.g., /path/to/image_population_34+FMNH_4669630+stack_1.png
+    img=imread(folder_name+file_name+'_hw_1.png')
     channels = [[0,0]]
-    masks, flows, styles, diams = model.eval(img, diameter=100, channels=channels)
+    masks, flows, styles = model.eval(img, diameter=100, channels=channels)
     # save cellpose outputs
-    io.masks_flows_to_seg(img, masks, flows, diams, filename, channels)
+    io.masks_flows_to_seg(img, masks, flows, folder_name+file_name, channels)
 
     # generate outline image
     # Load original images
-    orig_img = cv2.imread(filename+'+stack_1_hw_crop.tif')
+    orig_img = cv2.imread(folder_name+file_name+'+stack_1_hw_crop.tif')
     orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2GRAY) #255 is mask
     
     # Load cellpose results
@@ -67,5 +70,5 @@ if __name__ == "__main__":
     # plt.imshow(dat1['img'])
     # plt.ylim(0,2600)
     plt.imshow(result)
-    plt.imsave(folder_name+'outline/'+file_name+'_hw_outline.png',result)
-    np.save(folder_name+'outline/'+file_name+'_hw_outline',result)
+    plt.imsave("../../result/04_segmentation/"+file_name+'_hw_outline.png',result)
+    np.save("../../result/04_segmentation/"+file_name+'_hw_outline',result)
