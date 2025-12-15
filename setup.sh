@@ -96,21 +96,41 @@ else
 fi
 echo ""
 
-# Step 5: Download SAM model checkpoint
+# Step 5: Check for pre-trained models
 echo "----------------------------------------"
-echo "Step 5: Downloading SAM model checkpoint"
+echo "Step 5: Checking for pre-trained models"
 echo "----------------------------------------"
 echo ""
-SAM_MODEL_PATH="source/02_extraction/sam_vit_h_4b8939.pth"
-if [ -f "$SAM_MODEL_PATH" ]; then
-    echo "SAM model checkpoint already exists. Skipping download."
+
+SAM_MODEL="source/02_extraction/fine_tuned_sam_im1b.pth"
+DLC_MODEL_DIR="data/deeplabcut_whole"
+CELLPOSE_MODEL_DIR="$HOME/.cellpose/models"
+
+echo "Checking for required model files..."
+if [ -f "$SAM_MODEL" ]; then
+    echo -e "${GREEN}✓ SAM model found${NC}"
 else
-    echo "Downloading SAM ViT-H model checkpoint (2.4 GB)..."
-    mkdir -p source/02_extraction
-    cd source/02_extraction
-    wget -q --show-progress https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-    cd ../..
-    echo -e "${GREEN}✓ SAM checkpoint downloaded${NC}"
+    echo -e "${YELLOW}⚠ SAM model not found${NC}"
+    echo "  Download from: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
+    echo "  Place in: source/02_extraction/fine_tuned_sam_im1b.pth"
+fi
+
+if [ -d "$DLC_MODEL_DIR" ]; then
+    echo -e "${GREEN}✓ DeepLabCut model directory found${NC}"
+else
+    echo -e "${YELLOW}⚠ DeepLabCut model not found${NC}"
+    echo "  Download from: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0?usp=drive_link"
+    echo "  Place in: data/deeplabcut_whole/"
+fi
+
+if [ -d "$CELLPOSE_MODEL_DIR" ]; then
+    echo -e "${GREEN}✓ Cellpose model directory exists${NC}"
+else
+    echo -e "${YELLOW}⚠ Cellpose model directory not found${NC}"
+    echo "  Download from: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex?usp=drive_link"
+    echo "  Place in: ~/.cellpose/models/"
+    mkdir -p "$CELLPOSE_MODEL_DIR"
+    echo "  Created directory: $CELLPOSE_MODEL_DIR"
 fi
 echo ""
 
@@ -230,9 +250,12 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}=========================================${NC}"
     echo ""
     echo "Next steps:"
-    echo "1. Place your images in the data/ directory"
-    echo "2. Navigate to source/ and run the pipeline steps"
-    echo "3. See README.md for detailed usage instructions"
+    echo "1. Download pre-trained models (see README.md Manual Installation step 6)"
+    echo "   - SAM model: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
+    echo "   - Cellpose: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex"
+    echo "   - DeepLabCut: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0"
+    echo "2. Place your images in the data/ directory"
+    echo "3. Navigate to source/ and run the pipeline (see README.md)"
     echo ""
 else
     echo ""

@@ -39,9 +39,10 @@ The `setup.sh` script will:
 - Install PyTorch (with CUDA support if available)
 - Install all dependencies
 - Install SAM and local packages
-- Download model checkpoints
 - Create output directories
 - Verify installation
+
+**Note**: Pre-trained models must be downloaded manually (see Manual Installation step 6)
 
 ### Manual Installation
 
@@ -66,10 +67,20 @@ pip install git+https://github.com/facebookresearch/segment-anything.git
 # 5. Install local sknw package
 cd source/sknw-master && pip install -e . && cd ../..
 
-# 6. Download SAM checkpoint (if needed)
-cd source/02_extraction
-wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-cd ../..
+# 6. Download pre-trained models
+# Download and place models in the appropriate directories:
+
+# SAM model (fine-tuned for wings)
+# Download from: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn
+# Place in: source/02_extraction/fine_tuned_sam_im1b.pth
+
+# Cellpose model (for domain segmentation)
+# Download from: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex?usp=drive_link
+# Place in: ~/.cellpose/models/
+
+# DeepLabCut model (for keypoint detection)
+# Download from: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0?usp=drive_link
+# Place in: data/deeplabcut_whole/
 
 # 7. Verify installation
 python -c "import torch, tensorflow, deeplabcut, cellpose, segment_anything; print('Success!')"
