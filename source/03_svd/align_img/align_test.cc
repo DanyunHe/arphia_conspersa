@@ -16,8 +16,8 @@ int main() {
 	// smaller than the full image, to prevent the method applying too much
 	// weight to the boundaries.
 	
-	bi_image b("../imgs/population_34/population_34+FMNH_4669526+stack_0_hw_crop.tif",q);
-	bi_image a("../imgs/population_34/population_34+FMNH_4669526+stack_1_hw_crop.tif",q);
+	bi_image b("../../../data/images/population_34+FMNH_4669526+stack_0_hw_crop.tif",q);
+	bi_image a("../../../data/images/population_34+FMNH_4669526+stack_1_hw_crop.tif",q);
 
 	puts("1");
 	// Choose function minimization type. 0: (a-b)^2, 1: a*(a-b).

@@ -5,29 +5,26 @@ import cv2
 import tifffile as tif 
 import matplotlib.pyplot as plt
 
-
-
 def save_comp(fn,im_rl,im_tl):
 
     (N,M,z)=im_tl.shape
-    print(N,M)
+
+    # Rotate the image 90 degree
+    im_rl=np.transpose(im_rl, (1, 0, 2))
+    im_tl=np.transpose(im_tl,(1,0,2))
     
     # Choose a long rectangle range 
     x1=N//2-1000;x2=N//2+1000
-    y1=M//2;y2=M//2+500
+    y1=M//2-500;y2=M//2+500
 
     # y1=1500;x1=1000;y2=2000;x2=3000
     #pick window 1
     crop_im_rl=im_rl[x1:x2,y1:y2,:]
     crop_im_tl=im_tl[x1:x2,y1:y2,:]
-
-    print("crop", crop_im_rl)
-
     
     io.imsave("%s_crop1.png"%fn,(crop_im_rl*255).astype(np.uint8))
     # Get the dimension of image
     (N,M,z)=crop_im_rl.shape
-    print(N,M)
 
     #2mn*12, halfe(6) x f, other half(6) x g f(...=0;...=1); g=1-f
     mn=M*N
@@ -38,9 +35,6 @@ def save_comp(fn,im_rl,im_tl):
     dx=1./(N-1)
     for i in range(N):
         f[i,:]=i*dx
-
-    print(f[10,10],f[-10,-10])
-
 
     for l in range(3):
         c=np.zeros((N,M))
@@ -65,12 +59,6 @@ def save_comp(fn,im_rl,im_tl):
         temp=c*(1-f)
         temp.shape=((mn));
         B[:,3+l+6]=temp
-
-    print(B[10,:],B[-10,:])
-    print(B)
-    plt.imshow(B)
-    plt.imsave('B.png',B)
-    # cv2.imwrite('B.png',B)
 
     # Compute SVD and save data
     (u,s,v)=np.linalg.svd(B.T,full_matrices=0)
@@ -114,34 +102,39 @@ def save_comp(fn,im_rl,im_tl):
         A[:,3+l+6]=temp
 
     # output first vector
-
     # construct the result using u1, u2
     result=A@u[:,0]
-    print(u[:,0])
-    # result[:M2*x1]=A[:M2*x1,:]@u1[:,0]
-    # result[M2*(N2-x2):]=A[M2*(N2-x2):,:]@u2[:,0]
-
-
-    # gap=x2-x1
-    # for i in range(gap):
-    #     idx=x1+i
-    #     result[M2*idx:M2*(idx+1)]=A[M2*idx:M2*(idx+1),:]@(u2[:,0]*(1.*i)/gap+u1[:,0]*(1.-i/gap))
 
     pos=np.zeros(sz)
     neg=np.zeros(sz)
     for j in range(sz):
-        if result[j]>0:
-            pos[j]=result[j]
-        else:
+        if result[j]<0:
             neg[j]=-result[j]
+            # result[j]=0 # change
+        elif result[j]<1:
+            pos[j]=result[j]
+        # else:
+        #     pos[j]=1 #change
+        #     result[j]=1 #change
             
     result=result.reshape((N2,M2))
     pos=pos.reshape((N2,M2))
     neg=neg.reshape((N2,M2))
-    # tif.imsave("%s_1.tif"%fn,1.-result)
-    # tif.imsave("%s_1_pos.tif"%fn,1.-pos)
-    # tif.imsave("%s_1_neg.tif"%fn,1.-neg)
-    
+
+    # Make background black
+    np.clip(result,0,1)
+    im_bkg=np.mean(im_rl,axis=2)
+    im_bkg2=np.mean(im_tl,axis=2)
+
+    result[im_bkg==1.]=0
+    result[im_bkg2==1.]=0
+    pos[im_bkg==1.]=0
+
+    result = 1.-result
+    result[im_bkg==1.]=0
+    result[im_bkg2==1.]=0
+
+    # Transpose back to the original orientation
     result=np.transpose(result, (1, 0))
     pos=np.transpose(pos, (1, 0))
     neg=np.transpose(neg, (1, 0))
@@ -150,6 +143,16 @@ def save_comp(fn,im_rl,im_tl):
     io.imsave("%s_hw_1_pos.png"%fn,(pos*255).astype(np.uint8))
     io.imsave("%s_hw_1_neg.png"%fn,(neg*255).astype(np.uint8))
 
+
+# Make dark background for im_target according to background in im_ref
+def dark_bkg(fn,im_ref,im_target):
+     # Make background black
+
+    im_bkg=np.mean(im_ref,axis=2)
+    # print(im_bkg)
+    im_target[im_bkg==1.]=0
+    io.imsave("%s_hw_1.png"%fn,im_target)
+    
 
 if __name__=="__main__":
     
@@ -168,7 +171,6 @@ if __name__=="__main__":
     # im_rl=cv2.cvtColor(im_rl, cv2.COLOR_RGBA2RGB) 
     im_rl=im_rl.astype(np.float64);
     im_rl/=255.0
-    im_rl=np.transpose(im_rl, (1, 0, 2))
 
     # Transmitted image 
     im_tl = cv2.imread(folder_name+file_name+'+stack_1_hw_crop.tif')
@@ -180,7 +182,6 @@ if __name__=="__main__":
     # im_tl=cv2.cvtColor(im_tl, cv2.COLOR_RGBA2RGB) 
     im_tl=im_tl.astype(np.float64);
     im_tl/=255.0
-    im_tl=np.transpose(im_tl, (1, 0, 2))
     print(im_tl.shape)
 
     fn=folder_name+"svd_result/"+file_name

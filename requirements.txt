@@ -1,1 +1,47 @@
-numpy == 
+# Core scientific computing
+numpy>=1.20.0,<1.27.0
+pandas>=1.3.0
+numba>=0.55.0
+
+# Image processing
+Pillow==9.4.0
+opencv-python>=4.5.0
+scikit-image>=0.19.0
+rawpy>=0.18.0
+tifffile>=2021.11.2
+imageio>=2.9.0
+
+# File I/O
+openpyxl>=3.0.9
+
+# Visualization
+matplotlib>=3.4.0
+
+# Deep Learning - TensorFlow
+tensorflow==2.10.0
+
+# DeepLabCut for pose estimation (step 01)
+deeplabcut==2.2.10
+
+# Segment Anything Model (SAM) for wing extraction (step 02)
+# Install from GitHub: pip install git+https://github.com/facebookresearch/segment-anything.git
+# Or uncomment below if available on PyPI:
+# segment-anything>=1.0
+
+# PyTorch (required for SAM and Cellpose)
+# Install the appropriate version for your system from https://pytorch.org
+# For CPU-only: torch>=1.13.0
+# For CUDA: install from PyTorch website based on your CUDA version
+torch>=1.13.0
+torchvision>=0.14.0
+
+# Cellpose for domain segmentation (step 04)
+cellpose>=2.2.0
+
+# Geometry and graph processing
+shapely>=1.8.0
+networkx>=2.6.0
+
+# Additional dependencies for compatibility
+# (Some may already be installed as dependencies of above packages)
+scipy>=1.7.0
