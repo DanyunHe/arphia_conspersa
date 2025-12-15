@@ -34,7 +34,6 @@ Thumbs.db
 
 
 
-# === Data folder contents ===
-# Keep folder structure but ignore downloaded data/models
-data/*
-!data/.gitkeep
+# === Data folder ===
+# Ignore entire data folder (users create and populate themselves)
+data/
