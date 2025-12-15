@@ -1,62 +1,135 @@
-# arphia_conspersa
-This folder contains the source code to run each step separately. 
+# Source Code - Pipeline Steps
 
-## Structure 
+Run each step from the `source/` directory.
 
+---
 
-```
-source/
-    └── 01_find_pt/
-    	└── find_pt.py
-    └── 02_extraction/
-    	└── extraction.py
-    └── 03_svd/
-    └── 04_segmentation/
-    └── 05_venation_network/
-    
-```
+## Step 01: Find Points
 
-## Run step by step and validations 
-### 01. Find points on the wing  
-Goal: identify different regions (background, forewing, hindwing, body) on the wing to help extraction.<br>
-Input: raw image 
+**Goal**: Identify key regions (background, forewing, hindwing, body) using DeepLabCut
+
+**Command**:
 ```bash
-python find_pt.py
+cd 01_find_pt
+python find_pt.py <working_dir> <image_filename>
 ```
-Output: positions of pt on the wing. <br>
-Validations: check if the points on the wing (an example). 
 
-### 02. Wing extraction 
-Goal: Seperate background, forewing, hindwing.<br>
-Input: pt and raw image 
+**Example**:
 ```bash
-python extraction.py
+python find_pt.py /data/jiayin/arphia_conspersa population_34+FMNH_4669630+stack_0.png
 ```
-Output: seperated forewing and hindwing.<br>
-Validations: 
 
-### 03. Alignment and svd
-Goal: Align two images and do svd that emphasis on the wing skeleton. <br>
-Input: hindwing in transmitted light and reflected light
+**Output**: CSV with point coordinates in `../../result/01_find_pt/resize_img/`
+
+---
+
+## Step 02: Wing Extraction
+
+**Goal**: Separate forewing and hindwing using SAM
+
+**Command**:
 ```bash
-python svd.py
+cd 02_extraction
+python extract_wings.py --population_id <id> --individual_index <idx>
 ```
-Output: grey image <br>
-Validations:
 
-### 04. Domain segmentation 
-Goal: segment domains and veins from the hindwing using svd image. <br>
-Input: grey image
+**Options**:
+- `--population_id`: Population ID (required)
+- `--individual_index`: Row index to process (0-based, optional)
+- `--individual_name`: Process by name prefix (optional)
+- `--start_index`: Start from this index (default: 0)
+- `--input_dir_csv`: CSV directory (default: `01_find_pt_output/`)
+- `--input_dir_img`: Image directory (default: `../../data/`)
+- `--save_dir`: Output directory (default: `02_extraction_output/`)
+
+**Example**:
 ```bash
+python extract_wings.py --population_id 34 --individual_index 0
+```
+
+**Output**: Separated wings in `02_extraction_output/population_<id>/`
+
+---
+
+## Step 03: Alignment & SVD
+
+**Goal**: Align transmitted/reflected images and apply SVD to enhance wing skeleton
+
+**Command**:
+```bash
+cd 03_svd
+bash 03_svd.sh <image_name>
+```
+
+**Example**:
+```bash
+bash 03_svd.sh population_34+FMNH_4669526
+```
+
+**Output**: SVD image in `../../result/03_svd/<image_name>_hw_1.png`
+
+---
+
+## Step 04: Domain Segmentation
+
+**Goal**: Segment wing domains and veins using Cellpose
+
+**Command**:
+```bash
+cd 04_segmentation
+# Edit segmentation.py to set:
+#   - folder_name (input directory)
+#   - file_name (image basename)
+#   - model_type (Cellpose model)
 python segmentation.py
 ```
-Output: masks of domains. <br>
-Validations: check if domains are correctly identified. If not, cellpose allows manual correction and retraining the model. 
 
-### 05. Venation network 
-Goal: convert the masks into a graph, with vertices and edge (contain thickness). <br>
-Input: hindwing image, masks of domains.
+**Note**: Currently requires editing hardcoded values in the script
+
+**Output**: Segmentation masks and outline images in the input folder
+
+---
+
+## Step 05: Venation Network
+
+**Goal**: Convert masks to graph structure with vertices and edges
+
+**Command**:
 ```bash
-python venation_network.py
+cd 05_venation_network
+python venation_network.py \
+  --input_dir <input_dir> \
+  --output_dir <output_dir> \
+  --population <pop_id> \
+  --species <species_id>
 ```
-Output: graph, binary image. 
+
+**Options**:
+- `--save_venation_network`: Save network data (default: True)
+- `--save_plot`: Save visualization plots (default: True)
+- `--save_data`: Save processed data (default: True)
+
+**Example**:
+```bash
+python venation_network.py \
+  --input_dir 04_segmentation_output \
+  --output_dir 05_venation_network_output \
+  --population 151 \
+  --species 4601939
+```
+
+**Output**: Graph structure, thickness data, and visualizations in output directory
+
+---
+
+## Environment Variables
+
+For GPU memory management:
+```bash
+CUDA_VISIBLE_DEVICES=0 TF_FORCE_GPU_ALLOW_GROWTH=true python <script.py>
+```
+
+For custom Cellpose models:
+```bash
+export CELLPOSE_LOCAL_MODELS_PATH=~/.cellpose/models
+```
