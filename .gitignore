@@ -33,3 +33,8 @@ Thumbs.db
 #*.jpg
 
 
+
+# === Data folder contents ===
+# Keep folder structure but ignore downloaded data/models
+data/*
+!data/.gitkeep
