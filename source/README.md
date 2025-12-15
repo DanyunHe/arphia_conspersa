@@ -31,7 +31,7 @@ Validations: check if the points on the wing (an example).
 Goal: Seperate background, forewing, hindwing.<br>
 Input: pt and raw image 
 ```bash
-python extraction.py
+python extract_wings.py --population_id xxx --individual_index 
 ```
 Output: seperated forewing and hindwing.<br>
 Validations: 
