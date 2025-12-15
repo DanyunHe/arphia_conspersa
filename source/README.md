@@ -4,6 +4,27 @@ Run each step from the `source/` directory.
 
 ---
 
+## Step 00: Prepare Data
+
+**Goal**: Convert raw .dng images to PNG format for the pipeline
+
+**Download Images**: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq?usp=drive_link
+
+**Command**:
+```bash
+cd 00_prepare_data
+python convert_dng_to_png.py --input_dir <dng_directory> --output_dir ../../data
+```
+
+**Example**:
+```bash
+python convert_dng_to_png.py --input_dir ~/Downloads/wing_images --output_dir ../../data
+```
+
+**Output**: PNG images in `../../data/` with naming `population_XX+FMNH_XXXXXX+stack_[0,1].png`
+
+---
+
 ## Step 01: Find Points
 
 **Goal**: Identify key regions (background, forewing, hindwing, body) using DeepLabCut

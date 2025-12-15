@@ -118,9 +118,22 @@ python 05_venation_network/venation_network.py \
 
 ### Data Preparation
 
-Place image pairs in `data/`:
-- `<name>_0.dng` or `<name>_0.png` (reflected light)
-- `<name>_1.dng` or `<name>_1.png` (transmitted light)
+**1. Download Images**
+
+Download wing images from: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq?usp=drive_link
+
+**2. Convert DNG to PNG**
+
+The downloaded images are in `.dng` (raw) format. Convert them to PNG:
+
+```bash
+cd source/00_prepare_data
+python convert_dng_to_png.py --input_dir ~/Downloads/wing_images --output_dir ../../data
+```
+
+This creates PNG files in `data/` with the naming convention:
+- Reflected light: `population_XX+FMNH_XXXXXX+stack_0.png`
+- Transmitted light: `population_XX+FMNH_XXXXXX+stack_1.png`
 
 ---
 
@@ -131,15 +144,16 @@ arphia_conspersa/
 ├── README.md
 ├── requirements.txt
 ├── setup.sh                 # Automated installation
-├── data/                    # Input images
+├── data/                    # Input images (converted PNG)
 ├── result/                  # Pipeline outputs
 └── source/                  # Source code
-    ├── 01_find_pt/
-    ├── 02_extraction/
-    ├── 03_svd/
-    ├── 04_segmentation/
-    ├── 05_venation_network/
-    └── sknw-master/
+    ├── 00_prepare_data/     # DNG to PNG conversion
+    ├── 01_find_pt/          # DeepLabCut keypoint detection
+    ├── 02_extraction/       # SAM wing extraction
+    ├── 03_svd/              # Image alignment & SVD
+    ├── 04_segmentation/     # Cellpose domain segmentation
+    ├── 05_venation_network/ # Graph analysis
+    └── sknw-master/         # Graph skeletonization library
 ```
 
 ---
