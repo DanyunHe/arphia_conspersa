@@ -106,8 +106,8 @@ python 02_extraction/extract_wings.py --population_id 34 --individual_index 0
 # Step 3: Alignment & SVD
 bash 03_svd/03_svd.sh population_34+FMNH_4669526
 
-# Step 4: Segment domains (edit script first to set paths)
-python 04_segmentation/segmentation.py
+# Step 4: Segment domains
+python 04_segmentation/segmentation.py --folder_name ../result/03_svd/ --file_name population_34+FMNH_4669526
 
 # Step 5: Venation network
 python 05_venation_network/venation_network.py \
@@ -118,11 +118,17 @@ python 05_venation_network/venation_network.py \
 
 ### Data Preparation
 
-**1. Download Images**
+**1. Create Data Directory**
+
+```bash
+mkdir -p data
+```
+
+**2. Download Images**
 
 Download wing images from: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq?usp=drive_link
 
-**2. Convert DNG to PNG**
+**3. Convert DNG to PNG**
 
 The downloaded images are in `.dng` (raw) format. Convert them to PNG:
 
@@ -134,6 +140,8 @@ python convert_dng_to_png.py --input_dir ~/Downloads/wing_images --output_dir ..
 This creates PNG files in `data/` with the naming convention:
 - Reflected light: `population_XX+FMNH_XXXXXX+stack_0.png`
 - Transmitted light: `population_XX+FMNH_XXXXXX+stack_1.png`
+
+**Note**: Some pipeline steps (e.g., Step 02 extraction) can work directly with `.dng` files if you place them in the `data/` directory. However, Step 01 (find_pt.py) requires PNG format.
 
 ---
 
@@ -166,13 +174,47 @@ CUDA_VISIBLE_DEVICES=0 TF_FORCE_GPU_ALLOW_GROWTH=true python script.py
 ```
 
 ### TensorFlow Version
-Must use TensorFlow 2.10.0 for DeepLabCut 2.2.10 compatibility. Do not upgrade.
+Must use TensorFlow 2.10.0 for DeepLabCut 2.2.3 compatibility. Do not upgrade.
 
 ### Python Version
 Use Python 3.10. Some packages may fail with 3.11+.
 
 ### CUDA Library Warnings
 Warnings like `libnvinfer.so.7: cannot open shared object` are typically non-critical.
+
+### Directory Structure and Data Flow
+All pipeline steps now read from and write to the `result/` directory:
+```
+arphia_conspersa/
+├── data/                           # Input images (created by setup.sh)
+├── result/                         # All pipeline outputs
+│   ├── 01_find_pt/                # DeepLabCut keypoint detection outputs
+│   │   ├── resize_img/            # Resized images
+│   │   └── 01_output.csv          # Detected keypoints
+│   ├── 02_extraction/             # SAM wing extraction outputs
+│   │   └── population_XX/
+│   │       └── perfect_cropped/   # Cropped wing images
+│   ├── 03_svd/                    # SVD alignment outputs
+│   │   └── *_hw_1.png             # SVD processed images
+│   ├── 04_segmentation/           # Cellpose segmentation outputs
+│   │   ├── *_seg.npy              # Segmentation masks
+│   │   └── *_hw_outline.png       # Outline images
+│   └── 05_venation_network/       # Network analysis outputs
+└── source/                         # Source code
+```
+
+**Data Flow**:
+- Step 01 reads from `data/`, writes to `result/01_find_pt/`
+- Step 02 reads from `result/01_find_pt/` and `data/`, writes to `result/02_extraction/`
+- Step 03 reads from `result/02_extraction/`, writes to `result/03_svd/`
+- Step 04 reads from `result/03_svd/`, writes to `result/04_segmentation/`
+- Step 05 reads from `result/04_segmentation/`, writes to specified output directory
+
+### Missing Output Files
+If you see "file not found" errors:
+- Ensure all prerequisite steps completed successfully
+- Check that output directories exist
+- Verify file naming matches the expected pattern (e.g., `population_XX+FMNH_XXXXXX`)
 
 ### Environment Variables
 - `CUDA_VISIBLE_DEVICES=0` - Select GPU

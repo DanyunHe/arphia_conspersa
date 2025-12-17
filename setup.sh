@@ -134,12 +134,13 @@ else
 fi
 echo ""
 
-# Step 6: Create result directories
+# Step 6: Create result and data directories
 echo "----------------------------------------"
-echo "Step 6: Creating result directories"
+echo "Step 6: Creating result and data directories"
 echo "----------------------------------------"
 echo ""
-mkdir -p result/01_find_pt
+mkdir -p data
+mkdir -p result/01_find_pt/resize_img
 mkdir -p result/02_extraction
 mkdir -p result/03_svd
 mkdir -p result/04_segmentation

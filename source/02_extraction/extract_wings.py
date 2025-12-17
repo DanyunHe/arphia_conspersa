@@ -114,9 +114,12 @@ if __name__ == "__main__":
     p.add_argument("--individual_name",
                    help="Process only the row whose bodyparts starts with this name.")
     p.add_argument("--start_index", type=int, default=0)
-    p.add_argument("--input_dir_csv", default="01_find_pt_output/")
-    p.add_argument("--input_dir_img", default="../../data/")
-    p.add_argument("--save_dir", default="02_extraction_output/")
+    p.add_argument("--input_dir_csv", default="../../result/01_find_pt/",
+                   help="Directory containing CSV files from Step 01 (default: ../../result/01_find_pt/)")
+    p.add_argument("--input_dir_img", default="../../data/",
+                   help="Directory containing input images (default: ../../data/)")
+    p.add_argument("--save_dir", default="../../result/02_extraction/",
+                   help="Output directory for extracted wings (default: ../../result/02_extraction/)")
     args = p.parse_args()
 
     # Load SAM

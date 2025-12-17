@@ -21,7 +21,8 @@ matplotlib>=3.4.0
 tensorflow==2.10.0
 
 # DeepLabCut for pose estimation (step 01)
-deeplabcut==2.2.10
+# Note: Using 2.2.3 (latest in 2.2.x series compatible with TensorFlow 2.10.0)
+deeplabcut==2.2.3
 
 # Segment Anything Model (SAM) for wing extraction (step 02)
 # Install from GitHub: pip install git+https://github.com/facebookresearch/segment-anything.git
