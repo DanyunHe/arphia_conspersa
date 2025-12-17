@@ -18,8 +18,14 @@ python convert_dng_to_png.py --input_dir <dng_directory> --output_dir ../../data
 
 **Example**:
 ```bash
+# If you downloaded images to data/wing_images_download/images/
+python convert_dng_to_png.py --input_dir ../../data/wing_images_download/images --output_dir ../../data
+
+# Or from a custom download location
 python convert_dng_to_png.py --input_dir ~/Downloads/wing_images --output_dir ../../data
 ```
+
+**Input**: DNG images in source directory (e.g., `../../data/wing_images_download/images/*.dng`)
 
 **Output**: PNG images in `../../data/` with naming `population_XX+FMNH_XXXXXX+stack_[0,1].png`
 
@@ -40,7 +46,15 @@ python find_pt.py <working_dir> <image_filename>
 python find_pt.py /data/jiayin/arphia_conspersa population_34+FMNH_4669630+stack_0.png
 ```
 
-**Output**: CSV with point coordinates in `../../result/01_find_pt/resize_img/`
+**Output**:
+- CSV with point coordinates: `../../result/01_find_pt/01_output.csv`
+- Visualization: `../../result/01_find_pt/01_output.png`
+- Resized images: `../../result/01_find_pt/resize_img/`
+
+**Note**: Step 02 expects a file named `whole_label_<population_id>.csv`. Copy the output:
+```bash
+cp ../../result/01_find_pt/01_output.csv ../../result/01_find_pt/whole_label_34.csv
+```
 
 ---
 
@@ -60,13 +74,22 @@ python extract_wings.py --population_id <id> --individual_index <idx>
 - `--individual_name`: Process by name prefix (optional)
 - `--start_index`: Start from this index (default: 0)
 - `--input_dir_csv`: CSV directory (default: `../../result/01_find_pt/`)
-- `--input_dir_img`: Image directory (default: `../../data/`)
+- `--input_dir_img`: Image directory for DNG files (default: `../../data/`)
 - `--save_dir`: Output directory (default: `../../result/02_extraction/`)
 
 **Example**:
 ```bash
+# If DNG files are in data/wing_images_download/images/
+python extract_wings.py --population_id 34 --individual_index 0 \
+  --input_dir_img ../../data/wing_images_download/images/
+
+# Or if DNG files are in data/
 python extract_wings.py --population_id 34 --individual_index 0
 ```
+
+**Input**:
+- CSV from Step 01: `../../result/01_find_pt/whole_label_34.csv`
+- DNG images: `../../data/wing_images_download/images/*.dng` (or `../../data/*.dng`)
 
 **Output**: Separated wings in `../../result/02_extraction/population_<id>/perfect_cropped/`
 

@@ -95,24 +95,40 @@ See [`source/README.md`](source/README.md) for detailed command-line usage of ea
 ### Quick Example
 
 ```bash
-cd source
+# Step 0: Convert DNG to PNG (if starting with raw .dng files)
+cd source/00_prepare_data
+python convert_dng_to_png.py --input_dir ../../data/wing_images_download/images --output_dir ../../data
+cd ../..
 
-# Step 1: Find points
-python 01_find_pt/find_pt.py /path/to/project population_34+FMNH_4669630+stack_0.png
+# Step 1: Find points (uses PNG from data/, outputs to result/01_find_pt/)
+cd source/01_find_pt
+python find_pt.py /data/jiayin/arphia_conspersa population_34+FMNH_4669630+stack_0.png
 
-# Step 2: Extract wings
-python 02_extraction/extract_wings.py --population_id 34 --individual_index 0
+# Prepare CSV for Step 2 (Step 2 expects whole_label_<population_id>.csv)
+cp ../../result/01_find_pt/01_output.csv ../../result/01_find_pt/whole_label_34.csv
+cd ..
 
-# Step 3: Alignment & SVD
-bash 03_svd/03_svd.sh population_34+FMNH_4669526
+# Step 2: Extract wings (reads DNG from data/wing_images_download/images/, outputs to result/02_extraction/)
+cd 02_extraction
+python extract_wings.py --population_id 34 --individual_index 0 \
+  --input_dir_img ../../data/wing_images_download/images/
+cd ..
 
-# Step 4: Segment domains
-python 04_segmentation/segmentation.py --folder_name ../result/03_svd/ --file_name population_34+FMNH_4669526
+# Step 3: Alignment & SVD (reads from result/02_extraction/, outputs to result/03_svd/)
+cd 03_svd
+bash 03_svd.sh population_34+FMNH_4669630
+cd ..
 
-# Step 5: Venation network
-python 05_venation_network/venation_network.py \
-  --input_dir ../result/04_segmentation \
-  --output_dir ../result/05_venation_network \
+# Step 4: Segment domains (reads from result/03_svd/, outputs to result/04_segmentation/)
+cd 04_segmentation
+python segmentation.py --file_name population_34+FMNH_4669630
+cd ..
+
+# Step 5: Venation network (reads from result/04_segmentation/, outputs to result/05_venation_network/)
+cd 05_venation_network
+python venation_network.py \
+  --input_dir ../../result/04_segmentation \
+  --output_dir ../../result/05_venation_network \
   --population 34 --species 4601939
 ```
 
@@ -124,9 +140,17 @@ python 05_venation_network/venation_network.py \
 mkdir -p data
 ```
 
-**2. Download Images**
+**2. Download Required Data**
 
-Download wing images from: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq?usp=drive_link
+Use the provided download script (recommended):
+```bash
+bash download_data.sh
+```
+
+Or download manually:
+- Wing images: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq?usp=drive_link
+- DeepLabCut model: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0?usp=drive_link
+- Place DeepLabCut model in `data/deeplabcut_whole/`
 
 **3. Convert DNG to PNG**
 

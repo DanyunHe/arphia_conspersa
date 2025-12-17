@@ -123,8 +123,17 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # Load SAM
-    sam = sam_model_registry["vit_h"](checkpoint="fine_tuned_sam_im1b.pth")
-    sam.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Load checkpoint with proper device mapping for CPU compatibility
+    checkpoint_path = "fine_tuned_sam_im1b.pth"
+    if torch.cuda.is_available():
+        sam = sam_model_registry["vit_h"](checkpoint=checkpoint_path)
+    else:
+        # For CPU-only: manually load state dict with map_location
+        sam = sam_model_registry["vit_h"](checkpoint=None)
+        state_dict = torch.load(checkpoint_path, map_location="cpu")
+        sam.load_state_dict(state_dict)
+    sam.to(device)
     predictor = SamPredictor(sam)
 
     pop = WingExtractionPopulation(
