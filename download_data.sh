@@ -132,7 +132,7 @@ else
 fi
 
 # Check test images
-TEST_IMAGES=$(ls data/test_images/*.dng 2>/dev/null | wc -l)
+TEST_IMAGES=$(ls data/images-selected/*.dng 2>/dev/null | wc -l)
 if [ "$TEST_IMAGES" -gt 0 ]; then
     echo -e "${GREEN}✓ Found $TEST_IMAGES test images${NC}"
 else

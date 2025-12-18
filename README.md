@@ -96,13 +96,12 @@ See [`source/README.md`](source/README.md) for detailed command-line usage of ea
 
 ```bash
 # Step 0: Convert DNG to PNG (if starting with raw .dng files)
-cd source/00_prepare_data
-python convert_dng_to_png.py --input_dir ../../data/wing_images_download/images --output_dir ../../data
+cd source/00/prepare_data python convert_dng_to_png.py --input_dir ../../data/images-selected --output_dir ../../data
 cd ../..
 
 # Step 1: Find points (uses PNG from data/, outputs to result/01_find_pt/)
 cd source/01_find_pt
-python find_pt.py /data/jiayin/arphia_conspersa population_34+FMNH_4669630+stack_0.png
+python find_pt.py $HOME/arphia_conspersa population_34+FMNH_4669630+stack_0.png
 
 # Prepare CSV for Step 2 (Step 2 expects whole_label_<population_id>.csv)
 cp ../../result/01_find_pt/01_output.csv ../../result/01_find_pt/whole_label_34.csv
