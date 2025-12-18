@@ -1,6 +1,6 @@
 #!/bin/bash
-# Download script for wing analysis pipeline data
-# This script helps download required models and test data
+# Automatic download script for wing analysis pipeline data
+# This script automatically downloads required models and test data from web sources
 
 set -e
 
@@ -21,8 +21,8 @@ if ! command -v gdown &> /dev/null; then
     pip install gdown
 fi
 
-echo "This script will help download the required data files."
-echo "Note: Some downloads may require Google Drive authentication."
+echo "This script will automatically download the required data files."
+echo "Note: Large files may take time. Some downloads may require authentication."
 echo ""
 
 # Create directories
@@ -33,33 +33,63 @@ mkdir -p data/test_images
 echo "========================================"
 echo "1. DeepLabCut Model"
 echo "========================================"
-echo "Download from: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0"
+echo "Downloading from Google Drive..."
 echo "Target: data/deeplabcut_whole/"
 echo ""
-echo "Manual steps:"
-echo "1. Open the link above in your browser"
-echo "2. Download the folder contents"
-echo "3. Extract to data/deeplabcut_whole/"
-echo ""
-read -p "Press Enter when download is complete..."
+if gdown --folder https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0 -O data/deeplabcut_whole/ --remaining-ok; then
+    echo -e "${GREEN}✓ DeepLabCut model downloaded successfully${NC}"
+else
+    echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
+    echo "  URL: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0"
+fi
 
 echo ""
 echo "========================================"
 echo "2. Wing Test Images"
 echo "========================================"
-echo "Download from: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq"
+echo "Downloading test images from Google Drive..."
 echo "Target: data/test_images/"
 echo ""
-echo "Manual steps:"
-echo "1. Open the link above in your browser"
-echo "2. Download a few test images (DNG format)"
-echo "3. Save to data/test_images/"
-echo ""
-read -p "Press Enter when download is complete..."
+if gdown --folder https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq -O data/test_images/ --remaining-ok; then
+    echo -e "${GREEN}✓ Test images downloaded successfully${NC}"
+else
+    echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
+    echo "  URL: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq"
+fi
 
 echo ""
 echo "========================================"
-echo "3. Verification"
+echo "3. SAM Model"
+echo "========================================"
+echo "Downloading SAM model from UCLA Box..."
+echo "Target: source/02_extraction/fine_tuned_sam_im1b.pth"
+echo ""
+mkdir -p source/02_extraction
+if wget -O source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null || \
+   curl -L -o source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null; then
+    echo -e "${GREEN}✓ SAM model downloaded successfully${NC}"
+else
+    echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
+    echo "  URL: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
+fi
+
+echo ""
+echo "========================================"
+echo "4. Cellpose Model"
+echo "========================================"
+echo "Downloading Cellpose model from Google Drive..."
+echo "Target: ~/.cellpose/models/"
+echo ""
+if gdown --folder https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex -O ~/.cellpose/models/ --remaining-ok; then
+    echo -e "${GREEN}✓ Cellpose model downloaded successfully${NC}"
+else
+    echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
+    echo "  URL: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex"
+fi
+
+echo ""
+echo "========================================"
+echo "5. Verification"
 echo "========================================"
 echo ""
 
@@ -68,8 +98,6 @@ if [ -f "source/02_extraction/fine_tuned_sam_im1b.pth" ]; then
     echo -e "${GREEN}✓ SAM model found${NC}"
 else
     echo -e "${RED}✗ SAM model missing${NC}"
-    echo "  Download from: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
-    echo "  Place in: source/02_extraction/fine_tuned_sam_im1b.pth"
 fi
 
 # Check Cellpose model
@@ -77,8 +105,6 @@ if [ -f "$HOME/.cellpose/models/CP_20230503_151910" ]; then
     echo -e "${GREEN}✓ Cellpose model found${NC}"
 else
     echo -e "${YELLOW}⚠ Cellpose model not found${NC}"
-    echo "  Download from: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex"
-    echo "  Place in: ~/.cellpose/models/"
 fi
 
 # Check DeepLabCut
