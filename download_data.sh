@@ -65,7 +65,7 @@ echo ""
 if wget --content-disposition -O data/test_images.zip "https://ucla.box.com/shared/static/d7jldigc4r6ej7xsdbq587mxdltfzc3j.zip" 2>&1 || \
    curl -L -o data/test_images.zip "https://ucla.box.com/shared/static/d7jldigc4r6ej7xsdbq587mxdltfzc3j.zip" 2>&1; then
     echo "Extracting files..."
-    unzip -q -o data/test_images.zip -d data/test_images/
+    unzip -q -o data/test_images.zip -d data/
     rm data/test_images.zip
     echo -e "${GREEN}✓ Example images downloaded successfully${NC}"
 else
