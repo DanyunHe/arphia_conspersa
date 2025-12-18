@@ -15,15 +15,23 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# Check if gdown is installed
-if ! command -v gdown &> /dev/null; then
-    echo -e "${YELLOW}gdown not found. Installing...${NC}"
-    pip install gdown
+echo "This script will automatically download the required data files from UCLA Box."
+echo "Note: Large files may take time to download."
+echo ""
+
+# Check if wget or curl is available
+if ! command -v wget &> /dev/null && ! command -v curl &> /dev/null; then
+    echo -e "${RED}Error: Neither wget nor curl is installed.${NC}"
+    echo "Please install wget or curl to proceed."
+    exit 1
 fi
 
-echo "This script will automatically download the required data files."
-echo "Note: Large files may take time. Some downloads may require authentication."
-echo ""
+# Check if unzip is available
+if ! command -v unzip &> /dev/null; then
+    echo -e "${RED}Error: unzip is not installed.${NC}"
+    echo "Please install unzip to proceed."
+    exit 1
+fi
 
 # Create directories
 mkdir -p data/deeplabcut_whole
@@ -33,28 +41,34 @@ mkdir -p data/test_images
 echo "========================================"
 echo "1. DeepLabCut Model"
 echo "========================================"
-echo "Downloading from Google Drive..."
+echo "Downloading from UCLA Box..."
 echo "Target: data/deeplabcut_whole/"
 echo ""
-if gdown --folder https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0 -O data/deeplabcut_whole/ --remaining-ok; then
+if wget -O data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/mp1i9tbl0745196jmju5do6mp7zbsdrl.zip" 2>/dev/null || \
+   curl -L -o data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/mp1i9tbl0745196jmju5do6mp7zbsdrl.zip" 2>/dev/null; then
+    unzip -q -o data/deeplabcut_whole.zip -d data/deeplabcut_whole/
+    rm data/deeplabcut_whole.zip
     echo -e "${GREEN}✓ DeepLabCut model downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0"
+    echo "  URL: https://ucla.box.com/s/mp1i9tbl0745196jmju5do6mp7zbsdrl"
 fi
 
 echo ""
 echo "========================================"
-echo "2. Wing Test Images"
+echo "2. Quick Start Example Images"
 echo "========================================"
-echo "Downloading test images from Google Drive..."
+echo "Downloading example images from UCLA Box..."
 echo "Target: data/test_images/"
 echo ""
-if gdown --folder https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq -O data/test_images/ --remaining-ok; then
-    echo -e "${GREEN}✓ Test images downloaded successfully${NC}"
+if wget -O data/test_images.zip "https://ucla.box.com/shared/static/t96zuus56m7mb1qei5utgq4l86htl3hm.zip" 2>/dev/null || \
+   curl -L -o data/test_images.zip "https://ucla.box.com/shared/static/t96zuus56m7mb1qei5utgq4l86htl3hm.zip" 2>/dev/null; then
+    unzip -q -o data/test_images.zip -d data/test_images/
+    rm data/test_images.zip
+    echo -e "${GREEN}✓ Example images downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq"
+    echo "  URL: https://ucla.box.com/s/t96zuus56m7mb1qei5utgq4l86htl3hm"
 fi
 
 echo ""
@@ -77,14 +91,19 @@ echo ""
 echo "========================================"
 echo "4. Cellpose Model"
 echo "========================================"
-echo "Downloading Cellpose model from Google Drive..."
+echo "Downloading Cellpose model from UCLA Box..."
 echo "Target: ~/.cellpose/models/"
 echo ""
-if gdown --folder https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex -O ~/.cellpose/models/ --remaining-ok; then
+TEMP_ZIP=$(mktemp).zip
+if wget -O "$TEMP_ZIP" "https://ucla.box.com/shared/static/6un49faw0i58vp7q6n5ce9irey3x4ejh.zip" 2>/dev/null || \
+   curl -L -o "$TEMP_ZIP" "https://ucla.box.com/shared/static/6un49faw0i58vp7q6n5ce9irey3x4ejh.zip" 2>/dev/null; then
+    unzip -q -o "$TEMP_ZIP" -d ~/.cellpose/models/
+    rm "$TEMP_ZIP"
     echo -e "${GREEN}✓ Cellpose model downloaded successfully${NC}"
 else
+    rm -f "$TEMP_ZIP"
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex"
+    echo "  URL: https://ucla.box.com/s/6un49faw0i58vp7q6n5ce9irey3x4ejh"
 fi
 
 echo ""
