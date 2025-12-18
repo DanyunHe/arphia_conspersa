@@ -47,7 +47,7 @@ echo ""
 if wget --content-disposition -O data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/k7ee8iyhqhzo3g30ak888sny9ssrsycc.zip" 2>&1 || \
    curl -L -o data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/k7ee8iyhqhzo3g30ak888sny9ssrsycc.zip" 2>&1; then
     echo "Extracting files..."
-    unzip -q -o data/deeplabcut_whole.zip -d data/deeplabcut_whole/
+    unzip -q -o data/deeplabcut_whole.zip -d data/
     rm data/deeplabcut_whole.zip
     echo -e "${GREEN}✓ DeepLabCut model downloaded successfully${NC}"
 else
