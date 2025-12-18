@@ -44,14 +44,15 @@ echo "========================================"
 echo "Downloading from UCLA Box..."
 echo "Target: data/deeplabcut_whole/"
 echo ""
-if wget -O data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/mp1i9tbl0745196jmju5do6mp7zbsdrl.zip" 2>/dev/null || \
-   curl -L -o data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/mp1i9tbl0745196jmju5do6mp7zbsdrl.zip" 2>/dev/null; then
+if wget --content-disposition -O data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/k7ee8iyhqhzo3g30ak888sny9ssrsycc.zip" 2>&1 || \
+   curl -L -o data/deeplabcut_whole.zip "https://ucla.box.com/shared/static/k7ee8iyhqhzo3g30ak888sny9ssrsycc.zip" 2>&1; then
+    echo "Extracting files..."
     unzip -q -o data/deeplabcut_whole.zip -d data/deeplabcut_whole/
     rm data/deeplabcut_whole.zip
     echo -e "${GREEN}✓ DeepLabCut model downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://ucla.box.com/s/mp1i9tbl0745196jmju5do6mp7zbsdrl"
+    echo "  URL: https://ucla.box.com/s/k7ee8iyhqhzo3g30ak888sny9ssrsycc"
 fi
 
 echo ""
@@ -61,14 +62,15 @@ echo "========================================"
 echo "Downloading example images from UCLA Box..."
 echo "Target: data/test_images/"
 echo ""
-if wget -O data/test_images.zip "https://ucla.box.com/shared/static/t96zuus56m7mb1qei5utgq4l86htl3hm.zip" 2>/dev/null || \
-   curl -L -o data/test_images.zip "https://ucla.box.com/shared/static/t96zuus56m7mb1qei5utgq4l86htl3hm.zip" 2>/dev/null; then
+if wget --content-disposition -O data/test_images.zip "https://ucla.box.com/shared/static/d7jldigc4r6ej7xsdbq587mxdltfzc3j.zip" 2>&1 || \
+   curl -L -o data/test_images.zip "https://ucla.box.com/shared/static/d7jldigc4r6ej7xsdbq587mxdltfzc3j.zip" 2>&1; then
+    echo "Extracting files..."
     unzip -q -o data/test_images.zip -d data/test_images/
     rm data/test_images.zip
     echo -e "${GREEN}✓ Example images downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://ucla.box.com/s/t96zuus56m7mb1qei5utgq4l86htl3hm"
+    echo "  URL: https://ucla.box.com/s/d7jldigc4r6ej7xsdbq587mxdltfzc3j"
 fi
 
 echo ""
@@ -94,16 +96,12 @@ echo "========================================"
 echo "Downloading Cellpose model from UCLA Box..."
 echo "Target: ~/.cellpose/models/"
 echo ""
-TEMP_ZIP=$(mktemp).zip
-if wget -O "$TEMP_ZIP" "https://ucla.box.com/shared/static/6un49faw0i58vp7q6n5ce9irey3x4ejh.zip" 2>/dev/null || \
-   curl -L -o "$TEMP_ZIP" "https://ucla.box.com/shared/static/6un49faw0i58vp7q6n5ce9irey3x4ejh.zip" 2>/dev/null; then
-    unzip -q -o "$TEMP_ZIP" -d ~/.cellpose/models/
-    rm "$TEMP_ZIP"
+if wget --content-disposition -O ~/.cellpose/models/CP_20230503_151910 "https://ucla.box.com/shared/static/9orv40s9r4xzdlg1g93a1e7fzbob0j3k" 2>&1 || \
+   curl -L -o ~/.cellpose/models/CP_20230503_151910 "https://ucla.box.com/shared/static/9orv40s9r4xzdlg1g93a1e7fzbob0j3k" 2>&1; then
     echo -e "${GREEN}✓ Cellpose model downloaded successfully${NC}"
 else
-    rm -f "$TEMP_ZIP"
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://ucla.box.com/s/6un49faw0i58vp7q6n5ce9irey3x4ejh"
+    echo "  URL: https://ucla.box.com/s/9orv40s9r4xzdlg1g93a1e7fzbob0j3k"
 fi
 
 echo ""
