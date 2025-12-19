@@ -30,19 +30,25 @@ conda activate wing
 git clone https://github.com/DanyunHe/arphia_conspersa.git
 cd arphia_conspersa
 
-# 3. Run automated setup
-bash setup.sh
+# 3. Install PyTorch
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  # CUDA
+# OR for CPU-only: pip install torch torchvision
+
+# 4. Install Python dependencies
+pip install -r requirements.txt
+
+# 5. Install C++ dependencies for alignment (Step 03)
+conda install -c conda-forge gsl libtiff libpng
+
+# 6. Install SAM and local packages
+pip install git+https://github.com/facebookresearch/segment-anything.git
+cd source/sknw-master && pip install -e . && cd ../..
+
+# 7. Download pre-trained models
+bash download_data.sh
 ```
 
-The `setup.sh` script will:
-- Check Python version
-- Install PyTorch (with CUDA support if available)
-- Install all dependencies
-- Install SAM and local packages
-- Create output directories
-- Verify installation
-
-**Note**: Pre-trained models must be downloaded manually (see Manual Installation step 6)
+**Note**: The download script will download all required pre-trained models automatically
 
 ### Manual Installation
 
@@ -61,13 +67,16 @@ pip install torch torchvision  # CPU only
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Install SAM
+# 4. Install C++ dependencies for alignment (Step 03)
+conda install -c conda-forge gsl libtiff libpng
+
+# 5. Install SAM
 pip install git+https://github.com/facebookresearch/segment-anything.git
 
-# 5. Install local sknw package
+# 6. Install local sknw package
 cd source/sknw-master && pip install -e . && cd ../..
 
-# 6. Download pre-trained models
+# 7. Download pre-trained models
 # Download and place models in the appropriate directories:
 
 # SAM model (automatically downloaded by download_data.sh)
@@ -85,7 +94,7 @@ cd source/sknw-master && pip install -e . && cd ../..
 # Download from: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0?usp=drive_link
 # Place in: data/deeplabcut_whole/
 
-# 7. Verify installation
+# 8. Verify installation
 python -c "import torch, tensorflow, deeplabcut, cellpose, segment_anything; print('Success!')"
 ```
 

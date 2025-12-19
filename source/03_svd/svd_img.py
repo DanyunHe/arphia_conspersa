@@ -2,10 +2,12 @@ import numpy as np
 from PIL import Image
 from skimage import io
 import cv2
-import tifffile as tif 
+import tifffile as tif
 import matplotlib.pyplot as plt
 import multi_svd
 import sys
+import os
+import glob
 
 if __name__=="__main__":
 
@@ -24,7 +26,6 @@ if __name__=="__main__":
     im_tl_path = fn+file_name+'+stack_1_hw_crop.tif'
     if not os.path.exists(im_tl_path):
         # Fall back to Step 02 output location
-        import glob
         possible_paths = glob.glob(f"../../result/02_extraction/population_*/perfect_cropped/{file_name}+stack_1_hw_crop.tif")
         if possible_paths:
             im_tl_path = possible_paths[0]

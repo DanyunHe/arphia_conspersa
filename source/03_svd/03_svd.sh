@@ -1,8 +1,13 @@
-#!/bin/bash 
-# This script run the alignmenet code to align the transmitted and reflated images 
+#!/bin/bash
+# This script run the alignmenet code to align the transmitted and reflated images
 
 # Exit immediately if any command fails
 set -e
+
+# Set library path for conda environment if CONDA_PREFIX is set
+if [ -n "$CONDA_PREFIX" ]; then
+    export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+fi
 
 cd ./03_svd/align_img
 # Read input from the command line argument 

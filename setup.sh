@@ -72,18 +72,37 @@ pip install -r requirements.txt
 echo -e "${GREEN}✓ Dependencies installed${NC}"
 echo ""
 
-# Step 3: Install Segment Anything Model
+# Step 3: Install C++ dependencies for alignment (Step 03)
 echo "----------------------------------------"
-echo "Step 3: Installing Segment Anything Model (SAM)"
+echo "Step 3: Installing C++ dependencies (GSL, libtiff, libpng)"
+echo "----------------------------------------"
+echo ""
+if command -v conda &> /dev/null; then
+    echo "Installing C++ libraries via conda..."
+    conda install -y -c conda-forge gsl libtiff libpng
+    echo -e "${GREEN}✓ C++ dependencies installed${NC}"
+else
+    echo -e "${YELLOW}Warning: conda not found. C++ dependencies need to be installed manually:${NC}"
+    echo "  - GSL (GNU Scientific Library)"
+    echo "  - libtiff"
+    echo "  - libpng"
+    echo "  On Ubuntu/Debian: sudo apt-get install libgsl-dev libtiff-dev libpng-dev"
+    echo "  On macOS: brew install gsl libtiff libpng"
+fi
+echo ""
+
+# Step 4: Install Segment Anything Model
+echo "----------------------------------------"
+echo "Step 4: Installing Segment Anything Model (SAM)"
 echo "----------------------------------------"
 echo ""
 pip install git+https://github.com/facebookresearch/segment-anything.git
 echo -e "${GREEN}✓ SAM installed${NC}"
 echo ""
 
-# Step 4: Install local sknw package
+# Step 5: Install local sknw package
 echo "----------------------------------------"
-echo "Step 4: Installing local sknw package"
+echo "Step 5: Installing local sknw package"
 echo "----------------------------------------"
 echo ""
 if [ -d "source/sknw-master" ]; then
@@ -96,9 +115,9 @@ else
 fi
 echo ""
 
-# Step 5: Check for pre-trained models
+# Step 6: Check for pre-trained models
 echo "----------------------------------------"
-echo "Step 5: Checking for pre-trained models"
+echo "Step 6: Checking for pre-trained models"
 echo "----------------------------------------"
 echo ""
 
@@ -134,9 +153,9 @@ else
 fi
 echo ""
 
-# Step 6: Create result and data directories
+# Step 7: Create result and data directories
 echo "----------------------------------------"
-echo "Step 6: Creating result and data directories"
+echo "Step 7: Creating result and data directories"
 echo "----------------------------------------"
 echo ""
 mkdir -p data
@@ -148,9 +167,9 @@ mkdir -p result/05_venation_network
 echo -e "${GREEN}✓ Directories created${NC}"
 echo ""
 
-# Step 7: Verify installation
+# Step 8: Verify installation
 echo "----------------------------------------"
-echo "Step 7: Verifying installation"
+echo "Step 8: Verifying installation"
 echo "----------------------------------------"
 echo ""
 

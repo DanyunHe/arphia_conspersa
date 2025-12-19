@@ -9,7 +9,8 @@ int main(int argc, char* argv[]) {
 	int num_img=13;
 	char buf[128];
 	// char filename[128];
-	char fn[]="../../../data/images/";
+	char fn[]="../../../result/02_extraction/";
+	char fn_fit[]="../../../result/03_svd/";
 	FILE* fp;
 	size_t bufsize=0;
 	size_t nread;
@@ -22,9 +23,16 @@ int main(int argc, char* argv[]) {
     const char* filename = argv[1];
     // char filename[] = "population_34+FMNH_4669526";
     printf("processing: %s\n",filename);
-    sprintf(buf,"%s%s%s",fn,filename,"+stack_0_hw_crop.tif");
+
+    // Extract population ID from filename (e.g., "population_34+FMNH_4669630" -> "population_34")
+    char pop_id[64];
+    strcpy(pop_id, filename);
+    char* plus = strchr(pop_id, '+');
+    if (plus) *plus = '\0';
+
+    sprintf(buf,"%s%s/perfect_cropped/%s+stack_0_hw_crop.tif",fn,pop_id,filename);
     bi_image b(buf,q);
-    sprintf(buf,"%s%s%s",fn,filename,"+stack_0_hw_crop_fit.tif");
+    sprintf(buf,"%s%s+stack_0_hw_crop_fit.tif",fn_fit,filename);
     printf("%s\n",buf);
     bi_image a(buf,q);
 
@@ -73,7 +81,7 @@ int main(int argc, char* argv[]) {
     //b.output_gnuplot("orig_bmap.gnu",true,false,0);
     // a.write_image("target.png",true);
     // b.write_image("orig.png",true);
-    sprintf(buf,"%s%s%s",fn,filename,"+stack_0_hw_crop_mapped.png");
+    sprintf(buf,"%s%s+stack_0_hw_crop_mapped.png",fn_fit,filename);
     b.write_image(buf,false);
 
 
