@@ -121,17 +121,18 @@ echo "Step 6: Checking for pre-trained models"
 echo "----------------------------------------"
 echo ""
 
-SAM_MODEL="source/02_extraction/fine_tuned_sam_im1b.pth"
+SAM_MODEL_DIR="source/02_extraction/SAM_model"
 DLC_MODEL_DIR="data/deeplabcut_whole"
 CELLPOSE_MODEL_DIR="$HOME/.cellpose/models"
 
 echo "Checking for required model files..."
-if [ -f "$SAM_MODEL" ]; then
+if [ -f "$SAM_MODEL_DIR/fine_tuned_sam_im1b.pth" ] || [ -f "$SAM_MODEL_DIR/sam_vit_h_4b8939.pth" ]; then
     echo -e "${GREEN}✓ SAM model found${NC}"
 else
     echo -e "${YELLOW}⚠ SAM model not found${NC}"
-    echo "  Download from: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
-    echo "  Place in: source/02_extraction/fine_tuned_sam_im1b.pth"
+    echo "  Run download_data.sh to download the SAM model"
+    echo "  Or download manually from: https://ucla.box.com/s/sx20teqlvuoqhchi810olma8rtwqo6gh"
+    echo "  Extract to: source/02_extraction/"
 fi
 
 if [ -d "$DLC_MODEL_DIR" ]; then
@@ -270,8 +271,10 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}=========================================${NC}"
     echo ""
     echo "Next steps:"
-    echo "1. Download pre-trained models (see README.md Manual Installation step 6)"
-    echo "   - SAM model: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
+    echo "1. Download pre-trained models:"
+    echo "   Run: bash download_data.sh"
+    echo "   Or download manually:"
+    echo "   - SAM model: https://ucla.box.com/s/sx20teqlvuoqhchi810olma8rtwqo6gh"
     echo "   - Cellpose: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex"
     echo "   - DeepLabCut: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0"
     echo "2. Place your images in the data/ directory"

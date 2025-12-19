@@ -114,7 +114,7 @@ echo "========================================"
 echo ""
 
 # Check SAM model
-if [ -f "source/02_extraction/sam_vit_h_4b8939.pth" ]; then
+if [ -f "source/02_extraction/SAM_model/fine_tuned_sam_im1b.pth" ] || [ -f "source/02_extraction/SAM_model/sam_vit_h_4b8939.pth" ]; then
     echo -e "${GREEN}✓ SAM model found${NC}"
 else
     echo -e "${RED}✗ SAM model missing${NC}"
