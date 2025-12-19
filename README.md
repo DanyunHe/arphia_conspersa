@@ -70,9 +70,12 @@ cd source/sknw-master && pip install -e . && cd ../..
 # 6. Download pre-trained models
 # Download and place models in the appropriate directories:
 
-# SAM model (fine-tuned for wings)
-# Download from: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn
-# Place in: source/02_extraction/fine_tuned_sam_im1b.pth
+# SAM model (automatically downloaded by download_data.sh)
+# - Default model (sam_vit_h_4b8939.pth) is downloaded automatically
+# - Optional: Fine-tuned model for better wing extraction
+#   Download from: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn
+#   Place in: source/02_extraction/fine_tuned_sam_im1b.pth
+#   (The code will automatically use fine-tuned model if available)
 
 # Cellpose model (for domain segmentation)
 # Download from: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex?usp=drive_link

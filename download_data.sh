@@ -77,17 +77,28 @@ echo ""
 echo "========================================"
 echo "3. SAM Model"
 echo "========================================"
-echo "Downloading SAM model from UCLA Box..."
-echo "Target: source/02_extraction/fine_tuned_sam_im1b.pth"
+echo "Downloading default SAM model (ViT-H) from Meta..."
+echo "Target: source/02_extraction/sam_vit_h_4b8939.pth"
 echo ""
 mkdir -p source/02_extraction
-if wget -O source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null || \
-   curl -L -o source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null; then
+if wget -O source/02_extraction/sam_vit_h_4b8939.pth "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" 2>/dev/null || \
+   curl -L -o source/02_extraction/sam_vit_h_4b8939.pth "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" 2>/dev/null; then
     echo -e "${GREEN}✓ SAM model downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
+    echo "  URL: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
 fi
+
+# Fine-tuned SAM model (commented out - using default SAM model instead)
+# echo "Downloading fine-tuned SAM model from UCLA Box..."
+# echo "Target: source/02_extraction/fine_tuned_sam_im1b.pth"
+# if wget -O source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null || \
+#    curl -L -o source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null; then
+#     echo -e "${GREEN}✓ Fine-tuned SAM model downloaded successfully${NC}"
+# else
+#     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
+#     echo "  URL: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
+# fi
 
 echo ""
 echo "========================================"
@@ -111,7 +122,7 @@ echo "========================================"
 echo ""
 
 # Check SAM model
-if [ -f "source/02_extraction/fine_tuned_sam_im1b.pth" ]; then
+if [ -f "source/02_extraction/sam_vit_h_4b8939.pth" ]; then
     echo -e "${GREEN}✓ SAM model found${NC}"
 else
     echo -e "${RED}✗ SAM model missing${NC}"

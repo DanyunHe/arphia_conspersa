@@ -124,8 +124,26 @@ if __name__ == "__main__":
 
     # Load SAM
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Check for fine-tuned model first, fall back to default model
+    fine_tuned_path = "fine_tuned_sam_im1b.pth"
+    default_path = "sam_vit_h_4b8939.pth"
+
+    if os.path.exists(fine_tuned_path):
+        checkpoint_path = fine_tuned_path
+        print(f"Using fine-tuned SAM model: {checkpoint_path}")
+    elif os.path.exists(default_path):
+        checkpoint_path = default_path
+        print(f"Using default SAM model: {checkpoint_path}")
+    else:
+        raise FileNotFoundError(
+            f"No SAM model found. Please download either:\n"
+            f"  - Fine-tuned model: {fine_tuned_path}\n"
+            f"  - Default model: {default_path}\n"
+            f"Run download_data.sh to download the default model."
+        )
+
     # Load checkpoint with proper device mapping for CPU compatibility
-    checkpoint_path = "fine_tuned_sam_im1b.pth"
     if torch.cuda.is_available():
         sam = sam_model_registry["vit_h"](checkpoint=checkpoint_path)
     else:
