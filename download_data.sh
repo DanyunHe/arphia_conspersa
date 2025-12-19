@@ -77,28 +77,20 @@ echo ""
 echo "========================================"
 echo "3. SAM Model"
 echo "========================================"
-echo "Downloading default SAM model (ViT-H) from Meta..."
-echo "Target: source/02_extraction/sam_vit_h_4b8939.pth"
+echo "Downloading SAM model from UCLA Box..."
+echo "Target: source/02_extraction/"
 echo ""
 mkdir -p source/02_extraction
-if wget -O source/02_extraction/sam_vit_h_4b8939.pth "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" 2>/dev/null || \
-   curl -L -o source/02_extraction/sam_vit_h_4b8939.pth "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" 2>/dev/null; then
+if wget --content-disposition -O source/02_extraction/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1 || \
+   curl -L -o source/02_extraction/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1; then
+    echo "Extracting files..."
+    unzip -q -o source/02_extraction/sam_model.zip -d source/02_extraction/
+    rm source/02_extraction/sam_model.zip
     echo -e "${GREEN}✓ SAM model downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
+    echo "  URL: https://ucla.box.com/s/sx20teqlvuoqhchi810olma8rtwqo6gh"
 fi
-
-# Fine-tuned SAM model (commented out - using default SAM model instead)
-# echo "Downloading fine-tuned SAM model from UCLA Box..."
-# echo "Target: source/02_extraction/fine_tuned_sam_im1b.pth"
-# if wget -O source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null || \
-#    curl -L -o source/02_extraction/fine_tuned_sam_im1b.pth "https://ucla.box.com/shared/static/pvdivl59ttxjg50f9s2pt8hu9z972jbn.pth" 2>/dev/null; then
-#     echo -e "${GREEN}✓ Fine-tuned SAM model downloaded successfully${NC}"
-# else
-#     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-#     echo "  URL: https://ucla.box.com/s/pvdivl59ttxjg50f9s2pt8hu9z972jbn"
-# fi
 
 echo ""
 echo "========================================"
