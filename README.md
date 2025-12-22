@@ -138,10 +138,14 @@ cd ..
 # Step 5: Venation network (reads from result/04_segmentation/, outputs to result/05_venation_network/)
 cd 05_venation_network
 python venation_network.py \
-  --input_dir ../../result/04_segmentation \
-  --output_dir ../../result/05_venation_network \
-  --population 34 --species 4601939
+--svd_dir ../../result/03_svd \
+--input_dir ../../result/04_segmentation \
+--output_dir ../../result/05_venation_network \
+--population 34     --species 4669630
 ```
+
+
+
 
 ### Data Preparation
 

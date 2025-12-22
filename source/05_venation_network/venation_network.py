@@ -14,6 +14,8 @@ import networkx as nx
 from cellpose import utils
 import shapely.geometry# import Polygon
 
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for headless environment
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -27,9 +29,11 @@ from matplotlib.collections import LineCollection
 class wing_venation_network:
     
     #Set up paths to input and output data
-    def __init__(self, population, species, input_dir, save_dir):
-        
-        # Specify input directory
+    def __init__(self, population, species, svd_dir, input_dir, save_dir):
+
+        # Specify SVD directory for PNG images
+        self.svd_dir=svd_dir
+        # Specify input directory for segmentation files
         self.input_dir=input_dir
         # Specify directory to save results
         self.save_dir=os.path.join(save_dir, "population_{}".format(population))
@@ -47,18 +51,18 @@ class wing_venation_network:
         
          
         # ====================== Read in wing image
-        self.img0=mpimg.imread(os.path.join(self.input_dir,'population_{}/svd_result/population_{}+FMNH_{}_hw_1.png'.format(self.population, self.population, self.species)))    #test image
+        self.img0=mpimg.imread(os.path.join(self.svd_dir,'population_{}+FMNH_{}_hw_1.png'.format(self.population, self.species)))    #test image
         self.ny0=len(self.img0[:, 0])  # y
         self.nx0=len(self.img0[0, :])  # x
         
         # ====================== Read in image that categorize vein 1, cell 0, background 0.5. 
-        self.vein_cell_bg=np.load(os.path.join(self.input_dir,'population_{}/outline/population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.population, self.species)))    #test image
+        self.vein_cell_bg=np.load(os.path.join(self.input_dir,'population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.species)))    #test image
         
         # ====================== Read in cellpose segmentation info
         pattern = os.path.join(
                                 self.input_dir,
-                                'population_{}/cellpose/population_{}+FMNH_{}_hw_*seg.npy'.format(
-                                    self.population, self.population, self.species
+                                'population_{}+FMNH_{}_seg.npy'.format(
+                                    self.population, self.species
                                 )
                             )
         # Search for matching file
@@ -512,7 +516,8 @@ if __name__ == '__main__':
     
     
     # Input/output
-    parser.add_argument("--input_dir", type=str, required=True, help="Path to the input directory")
+    parser.add_argument("--svd_dir", type=str, required=True, help="Path to the SVD directory (for PNG images)")
+    parser.add_argument("--input_dir", type=str, required=True, help="Path to the segmentation directory (for outline and cellpose files)")
     parser.add_argument("--output_dir", type=str, required=True, help="Path to the output directory")
     
     # Metadata for identifying the wing
@@ -531,6 +536,7 @@ if __name__ == '__main__':
     wing = wing_venation_network(
         population=args.population,
         species=args.species,
+        svd_dir=args.svd_dir,
         input_dir=args.input_dir,
         save_dir=args.output_dir
     )
