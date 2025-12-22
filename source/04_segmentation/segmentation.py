@@ -101,6 +101,6 @@ if __name__ == "__main__":
 
     # plt.imshow(dat1['img'])
     # plt.ylim(0,2600)
-    plt.imshow(result)
+    # plt.imshow(result)
     plt.imsave(output_folder+file_name+'_hw_outline.png',result)
     np.save(output_folder+file_name+'_hw_outline',result)

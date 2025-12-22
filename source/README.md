@@ -79,9 +79,9 @@ python extract_wings.py --population_id <id> --individual_index <idx>
 
 **Example**:
 ```bash
-# If DNG files are in data/wing_images_download/images/
+# If DNG files are in data/images-selected/
 python extract_wings.py --population_id 34 --individual_index 0 \
-  --input_dir_img ../../data/wing_images_download/images/
+  --input_dir_img ../../data/images-selected/
 
 # Or if DNG files are in data/
 python extract_wings.py --population_id 34 --individual_index 0
