@@ -42,7 +42,7 @@ if __name__ == "__main__":
         df2.iloc[2,i*3+1]=int(float(df.iloc[2,i*3+1])*xfac)
         df2.iloc[2,i*3+2]=int(float(df.iloc[2,i*3+2])*yfac)
 
-    df2.to_csv(working_dir+'/result/01_find_pt/01_output.csv')
+    df2.to_csv(working_dir+'/result/01_find_pt/whole_label_%d.csv'%pid)
 
     # validation: plot the image with the points 
     plt.imshow(image)
