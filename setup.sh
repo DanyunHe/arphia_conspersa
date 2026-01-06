@@ -121,7 +121,7 @@ echo "Step 6: Checking for pre-trained models"
 echo "----------------------------------------"
 echo ""
 
-SAM_MODEL_DIR="source/02_extraction/SAM_model"
+SAM_MODEL_DIR="data/SAM_model"
 DLC_MODEL_DIR="data/deeplabcut_whole"
 CELLPOSE_MODEL_DIR="$HOME/.cellpose/models"
 

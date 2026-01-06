@@ -82,9 +82,9 @@ cd source/sknw-master && pip install -e . && cd ../..
 # SAM model (automatically downloaded by download_data.sh)
 # - Fine-tuned model (fine_tuned_sam_im1b.pth) is downloaded automatically
 # - Download from: https://ucla.box.com/s/sx20teqlvuoqhchi810olma8rtwqo6gh
-# - Extracts to: source/02_extraction/SAM_model/
+# - Extracts to: data/SAM_model/
 # - Note: The code will also work with the default SAM model (sam_vit_h_4b8939.pth)
-#   if you place it in source/02_extraction/SAM_model/
+#   if you place it in data/SAM_model/
 
 # Cellpose model (for domain segmentation)
 # Download from: https://drive.google.com/drive/folders/1KuuNEO-jhqwLQLR2-17uaZi7A8OlvBex?usp=drive_link

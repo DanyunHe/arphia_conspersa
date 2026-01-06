@@ -126,8 +126,8 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Check for fine-tuned model first, fall back to default model
-    fine_tuned_path = "SAM_model/fine_tuned_sam_im1b.pth"
-    default_path = "SAM_model/sam_vit_h_4b8939.pth"
+    fine_tuned_path = "../../data/SAM_model/fine_tuned_sam_im1b.pth"
+    default_path = "../../data/SAM_model/sam_vit_h_4b8939.pth"
 
     if os.path.exists(fine_tuned_path):
         checkpoint_path = fine_tuned_path

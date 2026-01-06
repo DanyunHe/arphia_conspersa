@@ -95,14 +95,14 @@ echo "========================================"
 echo "3. SAM Model"
 echo "========================================"
 echo "Downloading SAM model from UCLA Box..."
-echo "Target: source/02_extraction/"
+echo "Target: data/SAM_model/"
 echo ""
-mkdir -p source/02_extraction
-if wget --content-disposition -O source/02_extraction/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1 || \
-   curl -L -o source/02_extraction/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1; then
+mkdir -p data/SAM_model
+if wget --content-disposition -O data/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1 || \
+   curl -L -o data/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1; then
     echo "Extracting files..."
-    unzip -q -o source/02_extraction/sam_model.zip -d source/02_extraction/
-    rm source/02_extraction/sam_model.zip
+    unzip -q -o data/sam_model.zip -d data/SAM_model/
+    rm data/sam_model.zip
     echo -e "${GREEN}✓ SAM model downloaded successfully${NC}"
 else
     echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
@@ -131,7 +131,7 @@ echo "========================================"
 echo ""
 
 # Check SAM model
-if [ -f "source/02_extraction/SAM_model/fine_tuned_sam_im1b.pth" ] || [ -f "source/02_extraction/SAM_model/sam_vit_h_4b8939.pth" ]; then
+if [ -f "data/SAM_model/fine_tuned_sam_im1b.pth" ] || [ -f "data/SAM_model/sam_vit_h_4b8939.pth" ]; then
     echo -e "${GREEN}✓ SAM model found${NC}"
 else
     echo -e "${RED}✗ SAM model missing${NC}"
