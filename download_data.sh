@@ -97,11 +97,10 @@ echo "========================================"
 echo "Downloading SAM model from UCLA Box..."
 echo "Target: data/SAM_model/"
 echo ""
-mkdir -p data/SAM_model
 if wget --content-disposition -O data/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1 || \
    curl -L -o data/sam_model.zip "https://ucla.box.com/shared/static/sx20teqlvuoqhchi810olma8rtwqo6gh.zip" 2>&1; then
     echo "Extracting files..."
-    unzip -q -o data/sam_model.zip -d data/SAM_model/
+    unzip -q -o data/sam_model.zip -d data/
     rm data/sam_model.zip
     echo -e "${GREEN}✓ SAM model downloaded successfully${NC}"
 else
