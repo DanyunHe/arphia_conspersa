@@ -41,8 +41,8 @@ def convert_dng_to_png(dng_path, output_path):
 
 def main():
     parser = argparse.ArgumentParser(description='Convert .dng images to .png for wing analysis')
-    parser.add_argument('--input_dir', required=True, help='Directory containing .dng files')
-    parser.add_argument('--output_dir', default='../../data', help='Output directory for .png files (default: ../../data)')
+    parser.add_argument('--input_dir', default='../../data/DNG', help='Directory containing population folders with .dng files (default: ../../data/DNG)')
+    parser.add_argument('--output_dir', default='../../data/PNG', help='Output directory for .png files (default: ../../data/PNG)')
     args = parser.parse_args()
 
     # Check input directory
@@ -53,37 +53,64 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # Find all .dng files
-    dng_files = glob.glob(os.path.join(args.input_dir, '*.dng'))
+    # Find all population folders
+    population_folders = [d for d in glob.glob(os.path.join(args.input_dir, '*')) if os.path.isdir(d)]
 
-    if not dng_files:
-        print(f"No .dng files found in {args.input_dir}")
+    if not population_folders:
+        print(f"No population folders found in {args.input_dir}")
         sys.exit(1)
 
-    print(f"Found {len(dng_files)} .dng files")
-    print(f"Converting to: {os.path.abspath(args.output_dir)}")
+    print(f"Found {len(population_folders)} population folder(s)")
+    print(f"Input:  {os.path.abspath(args.input_dir)}")
+    print(f"Output: {os.path.abspath(args.output_dir)}")
     print("-" * 60)
 
-    # Convert each file
-    success_count = 0
-    fail_count = 0
+    total_success = 0
+    total_fail = 0
 
-    for dng_file in sorted(dng_files):
-        # Get base name and replace extension
-        base_name = os.path.basename(dng_file)
-        png_name = base_name.replace('.dng', '.png').replace('.DNG', '.png')
-        output_path = os.path.join(args.output_dir, png_name)
+    # Process each population folder
+    for pop_folder in sorted(population_folders):
+        pop_name = os.path.basename(pop_folder)
+        print(f"\nProcessing {pop_name}...")
 
-        # Convert
-        if convert_dng_to_png(dng_file, output_path):
-            success_count += 1
-        else:
-            fail_count += 1
+        # Find all .dng files in this population folder
+        dng_files = glob.glob(os.path.join(pop_folder, '*.dng')) + \
+                    glob.glob(os.path.join(pop_folder, '*.DNG'))
+
+        if not dng_files:
+            print(f"  No .dng files found in {pop_name}")
+            continue
+
+        print(f"  Found {len(dng_files)} .dng files")
+
+        # Create corresponding output folder
+        output_pop_folder = os.path.join(args.output_dir, pop_name)
+        os.makedirs(output_pop_folder, exist_ok=True)
+
+        # Convert each file
+        success_count = 0
+        fail_count = 0
+
+        for dng_file in sorted(dng_files):
+            # Get base name and replace extension
+            base_name = os.path.basename(dng_file)
+            png_name = base_name.replace('.dng', '.png').replace('.DNG', '.png')
+            output_path = os.path.join(output_pop_folder, png_name)
+
+            # Convert
+            if convert_dng_to_png(dng_file, output_path):
+                success_count += 1
+            else:
+                fail_count += 1
+
+        total_success += success_count
+        total_fail += fail_count
+        print(f"  {pop_name}: {success_count} success, {fail_count} failed")
 
     print("-" * 60)
     print(f"Conversion complete!")
-    print(f"  Success: {success_count}")
-    print(f"  Failed:  {fail_count}")
+    print(f"  Total Success: {total_success}")
+    print(f"  Total Failed:  {total_fail}")
     print(f"\nPNG files saved to: {os.path.abspath(args.output_dir)}")
 
 if __name__ == "__main__":

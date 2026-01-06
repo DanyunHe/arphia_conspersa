@@ -108,10 +108,11 @@ See [`source/README.md`](source/README.md) for detailed command-line usage of ea
 
 ```bash
 # Step 0: Convert DNG to PNG (if starting with raw .dng files)
-cd source/00/prepare_data python convert_dng_to_png.py --input_dir ../../data/images-selected --output_dir ../../data
-cd ../..
+cd source/00_prepare_data
+python convert_dng_to_png.py
+cd ../../..
 
-# Step 1: Find points (uses PNG from data/, outputs to result/01_find_pt/)
+# Step 1: Find points (uses PNG from data/PNG/, outputs to result/01_find_pt/)
 cd source/01_find_pt
 python find_pt.py $HOME/arphia_conspersa population_34+FMNH_4669630+stack_0.png
 
@@ -173,14 +174,21 @@ The downloaded images are in `.dng` (raw) format. Convert them to PNG:
 
 ```bash
 cd source/00_prepare_data
-python convert_dng_to_png.py --input_dir ~/Downloads/wing_images --output_dir ../../data
+python convert_dng_to_png.py
 ```
 
-This creates PNG files in `data/` with the naming convention:
+This will process all population folders in `data/DNG/` and create corresponding folders in `data/PNG/`:
+- Input:  `data/DNG/population_XX/image.dng`
+- Output: `data/PNG/population_XX/image.png`
+
+You can also specify custom input/output directories:
+```bash
+python convert_dng_to_png.py --input_dir /path/to/dng --output_dir /path/to/png
+```
+
+**Note**: The script processes all population folders automatically, maintaining the folder structure. PNG naming convention:
 - Reflected light: `population_XX+FMNH_XXXXXX+stack_0.png`
 - Transmitted light: `population_XX+FMNH_XXXXXX+stack_1.png`
-
-**Note**: Some pipeline steps (e.g., Step 02 extraction) can work directly with `.dng` files if you place them in the `data/` directory. However, Step 01 (find_pt.py) requires PNG format.
 
 ---
 

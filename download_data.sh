@@ -36,7 +36,7 @@ fi
 # Create directories
 mkdir -p data/deeplabcut_whole
 mkdir -p ~/.cellpose/models
-mkdir -p data/test_images
+mkdir -p data/DNG
 
 echo "========================================"
 echo "1. DeepLabCut Model"
@@ -59,18 +59,35 @@ echo ""
 echo "========================================"
 echo "2. Quick Start Example Images"
 echo "========================================"
-echo "Downloading example images from UCLA Box..."
-echo "Target: data/test_images/"
+echo "Downloading population wing images from UCLA Box..."
+echo "Target: data/DNG/"
 echo ""
-if wget --content-disposition -O data/test_images.zip "https://ucla.box.com/shared/static/d7jldigc4r6ej7xsdbq587mxdltfzc3j.zip" 2>&1 || \
-   curl -L -o data/test_images.zip "https://ucla.box.com/shared/static/d7jldigc4r6ej7xsdbq587mxdltfzc3j.zip" 2>&1; then
-    echo "Extracting files..."
-    unzip -q -o data/test_images.zip -d data/
-    rm data/test_images.zip
-    echo -e "${GREEN}✓ Example images downloaded successfully${NC}"
+
+# Download first population dataset
+echo "Downloading first population dataset..."
+if wget --content-disposition -O data/DNG/temp_population_1.zip "https://ucla.box.com/shared/static/6ld5szlnfjkmyp3rap2duzc3z4fbjrhr.zip" 2>&1 || \
+   curl -L -o data/DNG/temp_population_1.zip "https://ucla.box.com/shared/static/6ld5szlnfjkmyp3rap2duzc3z4fbjrhr.zip" 2>&1; then
+    echo "Extracting first population dataset..."
+    unzip -q -o data/DNG/temp_population_1.zip -d data/DNG/
+    rm data/DNG/temp_population_1.zip
+    echo -e "${GREEN}✓ First population dataset downloaded successfully${NC}"
 else
-    echo -e "${YELLOW}⚠ Automatic download failed. Manual download may be required.${NC}"
-    echo "  URL: https://ucla.box.com/s/d7jldigc4r6ej7xsdbq587mxdltfzc3j"
+    echo -e "${YELLOW}⚠ First population download failed. Manual download may be required.${NC}"
+    echo "  URL: https://ucla.box.com/s/6ld5szlnfjkmyp3rap2duzc3z4fbjrhr"
+fi
+
+echo ""
+# Download second population dataset
+echo "Downloading second population dataset..."
+if wget --content-disposition -O data/DNG/temp_population_2.zip "https://ucla.box.com/shared/static/86evgi78chetsga4e04ebgd6dwqknyko.zip" 2>&1 || \
+   curl -L -o data/DNG/temp_population_2.zip "https://ucla.box.com/shared/static/86evgi78chetsga4e04ebgd6dwqknyko.zip" 2>&1; then
+    echo "Extracting second population dataset..."
+    unzip -q -o data/DNG/temp_population_2.zip -d data/DNG/
+    rm data/DNG/temp_population_2.zip
+    echo -e "${GREEN}✓ Second population dataset downloaded successfully${NC}"
+else
+    echo -e "${YELLOW}⚠ Second population download failed. Manual download may be required.${NC}"
+    echo "  URL: https://ucla.box.com/s/86evgi78chetsga4e04ebgd6dwqknyko"
 fi
 
 echo ""
@@ -134,12 +151,13 @@ else
     echo -e "${RED}✗ DeepLabCut model not found${NC}"
 fi
 
-# Check test images
-TEST_IMAGES=$(ls data/images-selected/*.dng 2>/dev/null | wc -l)
-if [ "$TEST_IMAGES" -gt 0 ]; then
-    echo -e "${GREEN}✓ Found $TEST_IMAGES test images${NC}"
+# Check DNG population images
+DNG_DIRS=$(find data/DNG -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+if [ "$DNG_DIRS" -gt 0 ]; then
+    DNG_COUNT=$(find data/DNG -name "*.dng" -o -name "*.DNG" 2>/dev/null | wc -l)
+    echo -e "${GREEN}✓ Found $DNG_DIRS population folder(s) with $DNG_COUNT DNG images${NC}"
 else
-    echo -e "${RED}✗ No test images found${NC}"
+    echo -e "${RED}✗ No DNG population folders found${NC}"
 fi
 
 echo ""
@@ -148,6 +166,7 @@ echo "Download process complete!"
 echo "========================================"
 echo ""
 echo "Next steps:"
-echo "1. Convert DNG images to PNG: cd source/00_prepare_data && python convert_dng_to_png.py --input_dir ../../data/test_images --output_dir ../../data"
-echo "2. Run the pipeline from source/ directory"
+echo "1. Check available populations: ls data/DNG/"
+echo "2. Convert DNG images to PNG: cd source/00_prepare_data && python convert_dng_to_png.py"
+echo "3. Run the pipeline from source/ directory"
 echo ""
