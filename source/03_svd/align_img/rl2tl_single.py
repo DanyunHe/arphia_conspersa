@@ -14,30 +14,30 @@ if __name__=="__main__":
     file_name = sys.argv[2]
 
     # Try to find the images - they could be in population_XX subdirectories
-    # import os
-    # import glob
-    # possible_paths = [
-    #     input_dir + file_name + "+stack_0_hw_crop.tif",
-    #     input_dir + f"population_*/perfect_cropped/" + file_name + "+stack_0_hw_crop.tif"
-    # ]
+    import os
+    import glob
+    possible_paths = [
+        input_dir + file_name + "+stack_0_hw_crop.tif",
+        input_dir + f"population_*/perfect_cropped/" + file_name + "+stack_0_hw_crop.tif"
+    ]
 
-    # found_path = None
-    # for pattern in possible_paths:
-    #     matches = glob.glob(pattern)
-    #     if matches:
-    #         found_path = os.path.dirname(matches[0]) + "/"
-    #         break
+    found_path = None
+    for pattern in possible_paths:
+        matches = glob.glob(pattern)
+        if matches:
+            found_path = os.path.dirname(matches[0]) + "/"
+            break
 
-    # if found_path is None:
-    #     found_path = input_dir
-    #     print(f"Warning: Using default path {found_path}")
+    if found_path is None:
+        found_path = input_dir
+        print(f"Warning: Using default path {found_path}")
 
     # print("processing: ",found_path + file_name + "+stack_0_hw_crop.tif")
-    found_path = input_dir + f"population_%d/perfect_cropped/"%pid
-    print("processing: ",found_path + file_name + "+stack_0_hw_crop.tif")
+    # found_path = input_dir + f"population_%d/perfect_cropped/"%pid
+    # print("processing: ",found_path + file_name + "+stack_0_hw_crop.tif")
     im_rl = tif.imread(found_path + file_name + "+stack_0_hw_crop.tif")
     im_rl=np.array(im_rl).astype('float32');im_rl/=255.0
-    print("processing: ",found_path + file_name + "+stack_1_hw_crop.tif")
+    # print("processing: ",found_path + file_name + "+stack_1_hw_crop.tif")
     im_tl = tif.imread(found_path + file_name + "+stack_1_hw_crop.tif")
     im_tl=np.array(im_tl).astype('float32');im_tl/=255.0
     (N,M,z)=im_rl.shape
