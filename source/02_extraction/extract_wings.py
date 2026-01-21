@@ -105,25 +105,76 @@ class WingExtractionPopulation:
                                 self.save_dir, self.population_id, f"{category}_cropped/")
 
 
+def process_single_population(population_id, input_dir_csv, input_dir_img_base, save_dir, predictor):
+    """
+    Process a single population.
+
+    Args:
+        population_id: Population ID (integer, e.g., 34)
+        input_dir_csv: Directory containing whole_label CSV files
+        input_dir_img_base: Base directory for DNG images (data/DNG/)
+        save_dir: Output directory
+        predictor: SAM predictor instance
+    """
+    print(f"\n{'='*60}")
+    print(f"Processing population {population_id}")
+    print(f"{'='*60}")
+
+    # Construct path to population DNG images
+    input_dir_img = os.path.join(input_dir_img_base, f"population_{population_id}")
+
+    if not os.path.exists(input_dir_img):
+        print(f"  Warning: Image directory not found: {input_dir_img}")
+        print(f"  Skipping population {population_id}")
+        return
+
+    # Check if CSV exists
+    csv_path = os.path.join(input_dir_csv, f"whole_label_{population_id}.csv")
+    if not os.path.exists(csv_path):
+        print(f"  Warning: CSV not found: {csv_path}")
+        print(f"  Skipping population {population_id}")
+        return
+
+    try:
+        pop = WingExtractionPopulation(
+            population_id, input_dir_csv, input_dir_img, save_dir
+        )
+
+        print(f"Found {pop.n_wing} individuals to process")
+        pop.process_all(predictor, start_index=0)
+        pop.crop_all(category="perfect")
+
+        print(f"✓ Population {population_id} complete")
+    except Exception as e:
+        print(f"✗ Error processing population {population_id}: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 # -------------------- main -------------------------
 if __name__ == "__main__":
-    p = argparse.ArgumentParser()
-    p.add_argument("--population_id", type=int, required=True)
+    p = argparse.ArgumentParser(
+        description="Extract wings from grasshopper images using SAM model"
+    )
+    p.add_argument("--population_id", type=int,
+                   help="Process specific population ID (e.g., 34). If not provided, processes all populations.")
     p.add_argument("--individual_index", type=int,
-                   help="Process only this row index (0-based).")
+                   help="Process only this row index (0-based). Only works with --population_id.")
     p.add_argument("--individual_name",
-                   help="Process only the row whose bodyparts starts with this name.")
-    p.add_argument("--start_index", type=int, default=0)
+                   help="Process only the row whose bodyparts starts with this name. Only works with --population_id.")
+    p.add_argument("--start_index", type=int, default=0,
+                   help="Start processing from this index (0-based). Only works with --population_id.")
     p.add_argument("--input_dir_csv", default="../../result/01_find_pt/",
                    help="Directory containing CSV files from Step 01 (default: ../../result/01_find_pt/)")
-    p.add_argument("--input_dir_img", default="../../data/",
-                   help="Directory containing input images (default: ../../data/)")
+    p.add_argument("--input_dir_img", default="../../data/DNG/",
+                   help="Base directory containing DNG image folders (default: ../../data/DNG/)")
     p.add_argument("--save_dir", default="../../result/02_extraction/",
                    help="Output directory for extracted wings (default: ../../result/02_extraction/)")
     args = p.parse_args()
 
-    # Load SAM
+    # Load SAM model once for all populations
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
     # Check for fine-tuned model first, fall back to default model
     fine_tuned_path = "../../data/SAM_model/fine_tuned_sam_im1b.pth"
@@ -144,6 +195,7 @@ if __name__ == "__main__":
         )
 
     # Load checkpoint with proper device mapping for CPU compatibility
+    print("Loading SAM model...")
     if torch.cuda.is_available():
         sam = sam_model_registry["vit_h"](checkpoint=checkpoint_path)
     else:
@@ -153,17 +205,57 @@ if __name__ == "__main__":
         sam.load_state_dict(state_dict)
     sam.to(device)
     predictor = SamPredictor(sam)
+    print("SAM model loaded successfully\n")
 
-    pop = WingExtractionPopulation(
-        args.population_id, args.input_dir_csv, args.input_dir_img, args.save_dir
-    )
+    if args.population_id is not None:
+        # Process single population
+        if args.individual_index is not None or args.individual_name:
+            # Process specific individual(s) - use original logic
+            input_dir_img = os.path.join(args.input_dir_img, f"population_{args.population_id}")
+            pop = WingExtractionPopulation(
+                args.population_id, args.input_dir_csv, input_dir_img, args.save_dir
+            )
 
-    if args.individual_index is not None:
-        pop.process_individual(predictor, args.individual_index)
-    elif args.individual_name:
-        idx = pop.df.index[pop.df["bodyparts"].str.startswith(args.individual_name)][0]
-        pop.process_individual(predictor, idx)
+            if args.individual_index is not None:
+                pop.process_individual(predictor, args.individual_index)
+            elif args.individual_name:
+                idx = pop.df.index[pop.df["bodyparts"].str.startswith(args.individual_name)][0]
+                pop.process_individual(predictor, idx)
+
+            pop.crop_all(category="perfect")
+        else:
+            # Process all individuals in this population
+            process_single_population(
+                args.population_id, args.input_dir_csv, args.input_dir_img,
+                args.save_dir, predictor
+            )
     else:
-        pop.process_all(predictor, start_index=args.start_index)
+        # Process all populations
+        # Find all whole_label_*.csv files
+        csv_files = glob.glob(os.path.join(args.input_dir_csv, "whole_label_*.csv"))
 
-    pop.crop_all(category="perfect")
+        if not csv_files:
+            print(f"Error: No whole_label_*.csv files found in {args.input_dir_csv}")
+            print("Please run Step 1 (find_pt.py) first.")
+            sys.exit(1)
+
+        # Extract population IDs from CSV filenames
+        population_ids = []
+        for csv_file in csv_files:
+            basename = os.path.basename(csv_file)
+            # Extract number from "whole_label_34.csv" -> 34
+            pop_id = int(basename.replace("whole_label_", "").replace(".csv", ""))
+            population_ids.append(pop_id)
+
+        population_ids = sorted(population_ids)
+        print(f"Found {len(population_ids)} population(s) to process: {population_ids}")
+
+        for pop_id in population_ids:
+            process_single_population(
+                pop_id, args.input_dir_csv, args.input_dir_img,
+                args.save_dir, predictor
+            )
+
+        print("\n" + "="*60)
+        print("All populations processed!")
+        print("="*60)

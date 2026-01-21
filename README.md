@@ -110,39 +110,49 @@ See [`source/README.md`](source/README.md) for detailed command-line usage of ea
 # Step 0: Convert DNG to PNG (if starting with raw .dng files)
 cd source/00_prepare_data
 python convert_dng_to_png.py
-cd ../../..
+cd ../..
 
-# Step 1: Find points (uses PNG from data/PNG/, outputs to result/01_find_pt/)
+# Step 1: Find points (uses PNG from data/PNG/population_XX/, outputs to result/01_find_pt/)
 cd source/01_find_pt
-python find_pt.py $HOME/arphia_conspersa population_34+FMNH_4669630+stack_0.png
+# Option A: Process all populations at once
+python find_pt.py $HOME/arphia_conspersa
 
-# Prepare CSV for Step 2 (Step 2 expects whole_label_<population_id>.csv)
-cp ../../result/01_find_pt/01_output.csv ../../result/01_find_pt/whole_label_34.csv
-cd ..
+# Option B: Process specific population only
+# python find_pt.py $HOME/arphia_conspersa population_34
 
-# Step 2: Extract wings (reads DNG from data/wing_images_download/images/, outputs to result/02_extraction/)
-cd 02_extraction
-python extract_wings.py --population_id 34 --individual_index 0 \
-  --input_dir_img ../../data/wing_images_download/images/
-cd ..
+cd ../..
+
+# Step 2: Extract wings (reads DNG from data/DNG/population_XX/, outputs to result/02_extraction/)
+cd source/02_extraction
+# Option A: Process all populations at once
+python extract_wings.py
+
+# Option B: Process specific population only
+# python extract_wings.py --population_id 34
+
+# Option C: Process specific individual within a population
+# python extract_wings.py --population_id 34 --individual_index 0
+
+cd ../..
 
 # Step 3: Alignment & SVD (reads from result/02_extraction/, outputs to result/03_svd/)
-cd 03_svd
-bash 03_svd.sh population_34+FMNH_4669630
+cd source
+bash 03_svd/03_svd.sh population_34+FMNH_4669630
 cd ..
 
 # Step 4: Segment domains (reads from result/03_svd/, outputs to result/04_segmentation/)
-cd 04_segmentation
+cd source/04_segmentation
 python segmentation.py --file_name population_34+FMNH_4669630
-cd ..
+cd ../..
 
 # Step 5: Venation network (reads from result/04_segmentation/, outputs to result/05_venation_network/)
-cd 05_venation_network
+cd source/05_venation_network
 python venation_network.py \
 --svd_dir ../../result/03_svd \
 --input_dir ../../result/04_segmentation \
 --output_dir ../../result/05_venation_network \
---population 34     --species 4669630
+--population 34 --species 4669630
+cd ../..
 ```
 
 

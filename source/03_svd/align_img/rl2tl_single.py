@@ -10,8 +10,7 @@ if __name__=="__main__":
     # Output: fitted image to result/03_svd/
     input_dir = "../../../result/02_extraction/"
     output_dir = "../../../result/03_svd/"
-    pid = sys.argv[1]
-    file_name = sys.argv[2]
+    file_name = sys.argv[1]  # e.g., population_34+FMNH_4669630
 
     # Try to find the images - they could be in population_XX subdirectories
     import os
