@@ -11,11 +11,19 @@ import glob
 
 if __name__=="__main__":
 
-    # Read aligned images from result/03_svd/ (output from alignment step)
-    # Input: Aligned images from result/03_svd/
-    # Output: SVD processed images to result/03_svd/
-    fn="../../result/03_svd/"
+    # Read aligned images from result/03_svd/population_XX/ (output from alignment step)
+    # Input: Aligned images from result/03_svd/population_XX/
+    # Output: SVD processed images to result/03_svd/population_XX/
     file_name = sys.argv[1] # population_34+FMNH_4669526
+
+    # Extract population ID from filename
+    population_id = file_name.split('+')[0]  # e.g., "population_34"
+
+    fn_base = "../../result/03_svd/"
+    fn = os.path.join(fn_base, population_id) + "/"
+
+    # Create output directory if it doesn't exist
+    os.makedirs(fn, exist_ok=True)
 
     # Reflected image (after alignment/mapping)
     im_rl = cv2.imread(fn+file_name+'+stack_0_hw_crop_mapped.png')
@@ -33,8 +41,8 @@ if __name__=="__main__":
     im_tl = cv2.imread(im_tl_path)
     im_tl=im_tl.astype(np.float64);im_tl/=255.0
 
-    # Save result to result/03_svd/
-    save_fn = "../../result/03_svd/"+file_name
+    # Save result to result/03_svd/population_XX/
+    save_fn = fn+file_name
     multi_svd.save_comp(save_fn,im_rl,im_tl)
 
     # Make sure the background is black

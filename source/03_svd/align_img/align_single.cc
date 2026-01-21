@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     sprintf(buf,"%s%s/perfect_cropped/%s+stack_0_hw_crop.tif",fn,pop_id,filename);
     bi_image b(buf,q);
-    sprintf(buf,"%s%s+stack_0_hw_crop_fit.tif",fn_fit,filename);
+    sprintf(buf,"%s%s/%s+stack_0_hw_crop_fit.tif",fn_fit,pop_id,filename);
     printf("%s\n",buf);
     bi_image a(buf,q);
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     //b.output_gnuplot("orig_bmap.gnu",true,false,0);
     // a.write_image("target.png",true);
     // b.write_image("orig.png",true);
-    sprintf(buf,"%s%s+stack_0_hw_crop_mapped.png",fn_fit,filename);
+    sprintf(buf,"%s%s/%s+stack_0_hw_crop_mapped.png",fn_fit,pop_id,filename);
     b.write_image(buf,false);
 
 

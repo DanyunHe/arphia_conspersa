@@ -41,8 +41,11 @@ def process_single_image(working_dir, population_id, image_filename, config_path
     # Run DeepLabCut analysis on the resized image
     dlc.analyze_time_lapse_frames(config_path, temp_dir, save_as_csv=True)
 
-    # Read DeepLabCut output
-    dlc_output_csv = os.path.join(temp_dir, 'resize_imgDLC_resnet50_segment_wholeJun6shuffle1_2000.csv')
+    # Read DeepLabCut output (find the generated CSV file)
+    csv_files = glob.glob(os.path.join(temp_dir, '*DLC_resnet50_segment_wholeJun6shuffle1_2000.csv'))
+    if not csv_files:
+        raise FileNotFoundError(f"No DeepLabCut output CSV found in {temp_dir}")
+    dlc_output_csv = csv_files[0]
     df = pd.read_csv(dlc_output_csv)
 
     # Scale coordinates back to original image size
@@ -127,6 +130,42 @@ def process_population(working_dir, population_id, config_path, temp_dir):
         print(f"✓ Individual results saved in: result/01_find_pt/{population_id}/")
 
 
+def update_config_paths(config_path, working_dir):
+    """
+    Update paths in DeepLabCut config.yaml to match current working directory.
+
+    This ensures the config works on different computers without manual editing.
+    """
+    import yaml
+
+    # Read current config
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    # Update project_path
+    old_project_path = config.get('project_path', '')
+    new_project_path = os.path.join(working_dir, 'data', 'deeplabcut_whole',
+                                     'segment_whole-dy-2024-06-06')
+
+    if old_project_path != new_project_path:
+        print(f"Updating DeepLabCut config for this computer...")
+        config['project_path'] = new_project_path
+
+        # Update video_sets paths
+        if 'video_sets' in config and config['video_sets']:
+            old_video_sets = config['video_sets'].copy()
+            config['video_sets'] = {}
+            for old_path, settings in old_video_sets.items():
+                new_path = os.path.join(new_project_path, 'videos', 'whole.mov')
+                config['video_sets'][new_path] = settings
+
+        # Write updated config
+        with open(config_path, 'w') as f:
+            yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+
+        print(f"✓ Config updated: {new_project_path}")
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
@@ -147,6 +186,9 @@ if __name__ == "__main__":
     if not os.path.exists(config_path):
         print(f"Error: DeepLabCut config not found at {config_path}")
         sys.exit(1)
+
+    # Automatically update config paths for this computer
+    update_config_paths(config_path, working_dir)
 
     # Create main output directory
     os.makedirs(os.path.join(working_dir, 'result', '01_find_pt'), exist_ok=True)

@@ -7,10 +7,14 @@ if __name__=="__main__":
 
     # read cropped images from Step 02 output and do color conversion
     # Input: cropped images from result/02_extraction/
-    # Output: fitted image to result/03_svd/
+    # Output: fitted image to result/03_svd/population_XX/
     input_dir = "../../../result/02_extraction/"
-    output_dir = "../../../result/03_svd/"
+    output_base_dir = "../../../result/03_svd/"
     file_name = sys.argv[1]  # e.g., population_34+FMNH_4669630
+
+    # Extract population ID from filename to create subdirectory
+    population_id = file_name.split('+')[0]  # e.g., "population_34"
+    output_dir = os.path.join(output_base_dir, population_id) + "/"
 
     # Try to find the images - they could be in population_XX subdirectories
     import os

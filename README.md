@@ -70,6 +70,9 @@ pip install -r requirements.txt
 # 4. Install C++ dependencies for alignment (Step 03)
 conda install -c conda-forge gsl libtiff libpng
 
+# 4a. Compile alignment code (Step 03)
+cd source/03_svd/align_img && make clean && make && cd ../../..
+
 # 5. Install SAM
 pip install git+https://github.com/facebookresearch/segment-anything.git
 
@@ -113,6 +116,7 @@ python convert_dng_to_png.py
 cd ../..
 
 # Step 1: Find points (uses PNG from data/PNG/population_XX/, outputs to result/01_find_pt/)
+# NOTE: The script automatically updates DeepLabCut config paths for your computer
 cd source/01_find_pt
 # Option A: Process all populations at once
 python find_pt.py $HOME/arphia_conspersa
@@ -135,10 +139,18 @@ python extract_wings.py
 
 cd ../..
 
-# Step 3: Alignment & SVD (reads from result/02_extraction/, outputs to result/03_svd/)
-cd source
-bash 03_svd/03_svd.sh population_34+FMNH_4669630
-cd ..
+# Step 3: Alignment & SVD (reads from result/02_extraction/, outputs to result/03_svd/population_XX/)
+cd source/03_svd
+# Option A: Process all populations at once
+python process_all_svd.py
+
+# Option B: Process specific population only
+# python process_all_svd.py --population_id 34
+
+# Option C: Process specific wing
+# python process_all_svd.py --wing_name population_34+FMNH_4669630
+
+cd ../..
 
 # Step 4: Segment domains (reads from result/03_svd/, outputs to result/04_segmentation/)
 cd source/04_segmentation
@@ -177,6 +189,8 @@ Or download manually:
 - Wing images: https://drive.google.com/drive/folders/1lRfwuUhhVadkfz2ixvTbiqTruDvx72Kq?usp=drive_link
 - DeepLabCut model: https://drive.google.com/drive/folders/1pfFGtV4hHQSBNwLjq10zhs3KKi13phm0?usp=drive_link
 - Place DeepLabCut model in `data/deeplabcut_whole/`
+
+**Note on DeepLabCut Config**: The `find_pt.py` script (Step 1) automatically updates the DeepLabCut `config.yaml` file with the correct paths for your computer. No manual editing required!
 
 **3. Convert DNG to PNG**
 
