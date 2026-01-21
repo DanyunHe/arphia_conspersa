@@ -34,6 +34,11 @@ def process_single_image(working_dir, population_id, image_filename, config_path
     y2, x2 = 1024, 682   # Target size
     resized_image = image.resize((y2, x2))
 
+    # Clean temp directory to avoid DeepLabCut caching issues
+    import glob as glob_module
+    for old_file in glob_module.glob(os.path.join(temp_dir, '*')):
+        os.remove(old_file)
+
     # Save resized image to temporary directory
     resized_path = os.path.join(temp_dir, image_filename)
     resized_image.save(resized_path)
