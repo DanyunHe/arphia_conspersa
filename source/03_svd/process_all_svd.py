@@ -43,40 +43,6 @@ def find_all_wings(input_dir):
     return sorted(base_names)
 
 
-def cleanup_intermediate_files(base_name):
-    """
-    Delete intermediate files, keeping only the final *_hw_1.png output.
-
-    Args:
-        base_name: Base name without extension (e.g., "population_34+FMNH_4669630")
-    """
-    # Extract population ID to find the correct subdirectory
-    population_id = base_name.split('+')[0]  # e.g., "population_34"
-    output_dir = os.path.join("../../result/03_svd", population_id)
-
-    if not os.path.exists(output_dir):
-        return
-
-    # List of intermediate file patterns to delete
-    patterns_to_delete = [
-        f"{base_name}_crop1.png",                     # Intermediate crop
-        f"{base_name}_hw_1_neg.png",                  # Negative component
-        f"{base_name}_hw_1_pos.png",                  # Positive component
-        f"{base_name}+stack_0_hw_crop_fit.tif",       # Alignment reference
-        f"{base_name}+stack_0_hw_crop_mapped.png",    # Mapped alignment
-        "_hw_1.png",                                   # Leftover file
-    ]
-
-    for pattern in patterns_to_delete:
-        file_path = os.path.join(output_dir, pattern)
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-                print(f"  Cleaned up: {pattern}")
-            except Exception as e:
-                print(f"  Warning: Could not delete {pattern}: {e}")
-
-
 def process_single_wing(base_name, script_dir):
     """
     Process a single wing through the SVD pipeline.
@@ -108,10 +74,6 @@ def process_single_wing(base_name, script_dir):
 
         if result.returncode == 0:
             print(f"✓ {base_name} completed successfully")
-
-            # Clean up intermediate files, keeping only *_hw_1.png
-            cleanup_intermediate_files(base_name)
-
             return True
         else:
             print(f"✗ {base_name} failed with return code {result.returncode}")

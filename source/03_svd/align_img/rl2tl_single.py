@@ -77,6 +77,8 @@ if __name__=="__main__":
     np.clip(ao,0,1,out=ao)
     ao*=255
     ao=ao.astype('uint8')
-    # Save fitted image to result/03_svd/ directory
+    # Save fitted image to result/03_svd/population_XX/{individual}_temp/ directory
     os.makedirs(output_dir, exist_ok=True)
-    tif.imwrite(output_dir + file_name + "+stack_0_hw_crop_fit.tif", ao)
+    temp_dir = os.path.join(output_dir, f"{file_name}_temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    tif.imwrite(os.path.join(temp_dir, file_name + "+stack_0_hw_crop_fit.tif"), ao)

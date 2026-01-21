@@ -5,7 +5,16 @@ import cv2
 import tifffile as tif 
 import matplotlib.pyplot as plt
 
-def save_comp(fn,im_rl,im_tl):
+def save_comp(fn, im_rl, im_tl, temp_dir=None):
+    """
+    Save SVD components.
+
+    Args:
+        fn: Base filename for outputs
+        im_rl: Reflected light image
+        im_tl: Transmitted light image
+        temp_dir: Optional directory for intermediate files. If None, saves all to same location as fn.
+    """
 
     (N,M,z)=im_tl.shape
 
@@ -22,7 +31,10 @@ def save_comp(fn,im_rl,im_tl):
     crop_im_rl=im_rl[x1:x2,y1:y2,:]
     crop_im_tl=im_tl[x1:x2,y1:y2,:]
     
-    io.imsave("%s_crop1.png"%fn,(crop_im_rl*255).astype(np.uint8))
+    # Save crop1 to temp directory if provided, otherwise to main directory
+    import os
+    crop1_fn = os.path.join(temp_dir, os.path.basename(fn) + "_crop1.png") if temp_dir else "%s_crop1.png"%fn
+    io.imsave(crop1_fn, (crop_im_rl*255).astype(np.uint8))
     # Get the dimension of image
     (N,M,z)=crop_im_rl.shape
 
@@ -139,9 +151,13 @@ def save_comp(fn,im_rl,im_tl):
     pos=np.transpose(pos, (1, 0))
     neg=np.transpose(neg, (1, 0))
 
+    # Save final output to main directory
     io.imsave("%s_hw_1.png"%fn,(result*255).astype(np.uint8))
-    io.imsave("%s_hw_1_pos.png"%fn,(pos*255).astype(np.uint8))
-    io.imsave("%s_hw_1_neg.png"%fn,(neg*255).astype(np.uint8))
+    # Save intermediate pos/neg to temp directory if provided
+    pos_fn = os.path.join(temp_dir, os.path.basename(fn) + "_hw_1_pos.png") if temp_dir else "%s_hw_1_pos.png"%fn
+    neg_fn = os.path.join(temp_dir, os.path.basename(fn) + "_hw_1_neg.png") if temp_dir else "%s_hw_1_neg.png"%fn
+    io.imsave(pos_fn,(pos*255).astype(np.uint8))
+    io.imsave(neg_fn,(neg*255).astype(np.uint8))
 
 
 # Make dark background for im_target according to background in im_ref
