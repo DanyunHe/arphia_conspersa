@@ -154,7 +154,14 @@ cd ../..
 
 # Step 4: Segment domains (reads from result/03_svd/, outputs to result/04_segmentation/)
 cd source/04_segmentation
-python segmentation.py --file_name population_34+FMNH_4669630
+# Option A: Process all populations
+python segmentation.py
+
+# Option B: Process specific population
+# python segmentation.py --population_id 34
+
+# Option C: Process specific wing
+# python segmentation.py --wing_name population_34+FMNH_4669630
 cd ../..
 
 # Step 5: Venation network (reads from result/04_segmentation/, outputs to result/05_venation_network/)
@@ -267,8 +274,10 @@ arphia_conspersa/
 │   ├── 03_svd/                    # SVD alignment outputs
 │   │   └── *_hw_1.png             # SVD processed images
 │   ├── 04_segmentation/           # Cellpose segmentation outputs
-│   │   ├── *_seg.npy              # Segmentation masks
-│   │   └── *_hw_outline.png       # Outline images
+│   │   └── population_XX/
+│   │       ├── *_hw_seg.npy       # Segmentation masks
+│   │       ├── *_hw_outline.png   # Outline images
+│   │       └── *_hw_outline.npy   # Outline arrays
 │   └── 05_venation_network/       # Network analysis outputs
 └── source/                         # Source code
 ```
