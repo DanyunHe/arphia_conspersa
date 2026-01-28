@@ -166,11 +166,14 @@ cd ../..
 
 # Step 5: Venation network (reads from result/04_segmentation/, outputs to result/05_venation_network/)
 cd source/05_venation_network
-python venation_network.py \
---svd_dir ../../result/03_svd \
---input_dir ../../result/04_segmentation \
---output_dir ../../result/05_venation_network \
---population 34 --species 4669630
+# Option A: Process all populations
+python venation_network.py
+
+# Option B: Process specific population
+# python venation_network.py --population_id 34
+
+# Option C: Process specific wing
+# python venation_network.py --wing_name population_34+FMNH_4669630
 cd ../..
 ```
 
@@ -272,13 +275,17 @@ arphia_conspersa/
 │   │   └── population_XX/
 │   │       └── perfect_cropped/   # Cropped wing images
 │   ├── 03_svd/                    # SVD alignment outputs
-│   │   └── *_hw_1.png             # SVD processed images
+│   │   └── population_XX/
+│   │       └── *_hw_1.png         # SVD processed images
 │   ├── 04_segmentation/           # Cellpose segmentation outputs
 │   │   └── population_XX/
 │   │       ├── *_hw_seg.npy       # Segmentation masks
 │   │       ├── *_hw_outline.png   # Outline images
 │   │       └── *_hw_outline.npy   # Outline arrays
 │   └── 05_venation_network/       # Network analysis outputs
+│       └── population_XX/
+│           ├── cell/              # Cell statistics and plots
+│           └── vein/              # Vein network graphs and plots
 └── source/                         # Source code
 ```
 
@@ -287,7 +294,7 @@ arphia_conspersa/
 - Step 02 reads from `result/01_find_pt/` and `data/`, writes to `result/02_extraction/`
 - Step 03 reads from `result/02_extraction/`, writes to `result/03_svd/`
 - Step 04 reads from `result/03_svd/`, writes to `result/04_segmentation/`
-- Step 05 reads from `result/04_segmentation/`, writes to specified output directory
+- Step 05 reads from `result/03_svd/` and `result/04_segmentation/`, writes to `result/05_venation_network/`
 
 ### Missing Output Files
 If you see "file not found" errors:

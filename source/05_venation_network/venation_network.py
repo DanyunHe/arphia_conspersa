@@ -51,28 +51,25 @@ class wing_venation_network:
         
          
         # ====================== Read in wing image
-        self.img0=mpimg.imread(os.path.join(self.svd_dir,'population_{}+FMNH_{}_hw_1.png'.format(self.population, self.species)))    #test image
+        self.img0=mpimg.imread(os.path.join(self.svd_dir,'population_{}'.format(self.population),'population_{}+FMNH_{}_hw_1.png'.format(self.population, self.species)))    #test image
         self.ny0=len(self.img0[:, 0])  # y
         self.nx0=len(self.img0[0, :])  # x
         
-        # ====================== Read in image that categorize vein 1, cell 0, background 0.5. 
-        self.vein_cell_bg=np.load(os.path.join(self.input_dir,'population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.species)))    #test image
+        # ====================== Read in image that categorize vein 1, cell 0, background 0.5.
+        self.vein_cell_bg=np.load(os.path.join(self.input_dir,'population_{}'.format(self.population),'population_{}+FMNH_{}_hw_outline.npy'.format(self.population, self.species)))    #test image
         
         # ====================== Read in cellpose segmentation info
-        pattern = os.path.join(
+        seg_path = os.path.join(
                                 self.input_dir,
-                                'population_{}+FMNH_{}_seg.npy'.format(
+                                'population_{}'.format(self.population),
+                                'population_{}+FMNH_{}_hw_seg.npy'.format(
                                     self.population, self.species
                                 )
                             )
-        # Search for matching file
-        matches = glob.glob(pattern)
-        
-        if len(matches) == 0:
-            raise FileNotFoundError(f"No cellpose segmentation file found for population {self.population}, species {self.species}")
+        if not os.path.exists(seg_path):
+            raise FileNotFoundError(f"No cellpose segmentation file found: {seg_path}")
 
-        
-        self.wing_cellpose = np.load(matches[0], allow_pickle=True).item()
+        self.wing_cellpose = np.load(seg_path, allow_pickle=True).item()
         self.cell_contours=utils.outlines_list(self.wing_cellpose['masks'])
         
         
@@ -468,131 +465,192 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
-        
-        
-if __name__ == '__main__':
-    """
-    Example Command-Line Usage:
-        Data and plots saving default are true:
-            
-            python3 venation_network.py \
-            --input_dir 04_segmentation_output \
-            --output_dir 05_venation_network_output \
-            --population 151 --species 4601939 \
-        
-        Not saving: 
-            python3 venation_network.py \
-            --input_dir 04_segmentation_output \
-            --output_dir 05_venation_network_output \
-            --population 151 --species 4601939 \
-            --save_venation_network False \ 
-            --save_plot False \
-            --save_data False
-    """
-    
-    # Argument parser setup
-    parser = argparse.ArgumentParser(
-                description="""\
-                            Example Command-Line Usage:
-                            
-                                Data and plots saving default are True:
-                                    python3 venation_network.py \\
-                                        --input_dir 04_segmentation_output \\
-                                        --output_dir 05_venation_network_output \\
-                                        --population 151 --species 4601939
-                            
-                                Not saving:
-                                    python3 venation_network.py \\
-                                        --input_dir 04_segmentation_output \\
-                                        --output_dir 05_venation_network_output \\
-                                        --population 151 --species 4601939 \\
-                                        --save_venation_network False \\
-                                        --save_plot False \\
-                                        --save_data False
-                            """,
-                formatter_class=argparse.RawDescriptionHelpFormatter
-                )
 
-    
-    
-    # Input/output
-    parser.add_argument("--svd_dir", type=str, required=True, help="Path to the SVD directory (for PNG images)")
-    parser.add_argument("--input_dir", type=str, required=True, help="Path to the segmentation directory (for outline and cellpose files)")
-    parser.add_argument("--output_dir", type=str, required=True, help="Path to the output directory")
-    
-    # Metadata for identifying the wing
-    parser.add_argument("--population", type=str, required=True, help="Population ID")
-    parser.add_argument("--species", type=str, required=True, help="Species ID")
+def find_all_wings(input_dir):
+    """
+    Find all wing base names from Step 4 segmentation output.
 
-    # Save flags
-    parser.add_argument("--save_venation_network", type=str2bool, default=True, help="Default True; Save venation network or not")
-    parser.add_argument("--save_plot", type=str2bool, default=True, help="Default True; Save plots or not")
-    parser.add_argument("--save_data", type=str2bool, default=True, help="Default True; Save stats to .txt or not")
-    
-    args = parser.parse_args()
-    
-    
+    Args:
+        input_dir: Directory containing segmentation output (e.g., ../../result/04_segmentation/)
+
+    Returns:
+        List of base names (e.g., ["population_60+FMNH_4602398", ...])
+    """
+    pattern = os.path.join(input_dir, "population_*", "*_hw_outline.npy")
+    outline_files = glob.glob(pattern)
+
+    if not outline_files:
+        print(f"Warning: No segmentation outputs found matching pattern: {pattern}")
+        return []
+
+    base_names = []
+    for f in outline_files:
+        basename = os.path.basename(f)
+        # Remove "_hw_outline.npy" to get base name like "population_60+FMNH_4602398"
+        base_name = basename.replace("_hw_outline.npy", "")
+        base_names.append(base_name)
+
+    return sorted(base_names)
+
+
+def process_single_wing(base_name, svd_dir, input_dir, output_dir,
+                        save_venation_network, save_plot, save_data):
+    """
+    Run venation network analysis on a single wing.
+
+    Args:
+        base_name: Wing identifier (e.g., "population_60+FMNH_4602398")
+        svd_dir: SVD output directory
+        input_dir: Segmentation output directory
+        output_dir: Venation network output directory
+        save_venation_network: Whether to save the network graph
+        save_plot: Whether to save plots
+        save_data: Whether to save stats as .txt
+
+    Returns:
+        True if successful, False otherwise
+    """
+    # Parse population and species from base name
+    # e.g., "population_60+FMNH_4602398" -> population="60", species="4602398"
+    parts = base_name.split("+")
+    population = parts[0].replace("population_", "")
+    species = parts[1].replace("FMNH_", "")
+
     # Create and analyze the wing object
     wing = wing_venation_network(
-        population=args.population,
-        species=args.species,
-        svd_dir=args.svd_dir,
-        input_dir=args.input_dir,
-        save_dir=args.output_dir
+        population=population,
+        species=species,
+        svd_dir=svd_dir,
+        input_dir=input_dir,
+        save_dir=output_dir
     )
-    print("created wing object")
 
     # Compute basic measurements
     wing.calculate_wing_area()
     wing.calculate_domain_stats()
     wing.calculate_venetion_network()
     wing.calculate_modularity_communities()
-    print("finished calculation")
 
     # Save venation network
-    if args.save_venation_network:
+    if save_venation_network:
         wing.save_venation_network()
-        print("saved venation network")
 
     # Save plots
-    if args.save_plot:
+    if save_plot:
         wing.plot_cells_fractional_area()
         wing.plot_cells_circularity()
         wing.plot_vein_network()
         wing.plot_vein_thickness()
         wing.plot_modularity_communities()
-        print("saved plots")
 
     # Save stats as .txt
-    if args.save_data:
+    if save_data:
         wing.save_stats_as_txt()
-        print("saved data")
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        
-        
-    
-    
-    
-    
-        
-    
-    
-    
-    
-    
-    
-    
-    
+
+    return True
 
 
+def main():
+    parser = argparse.ArgumentParser(
+        description="Build venation networks from segmented wing images"
+    )
+    parser.add_argument("--svd_dir", default="../../result/03_svd/",
+                        help="SVD output directory (default: ../../result/03_svd/)")
+    parser.add_argument("--input_dir", default="../../result/04_segmentation/",
+                        help="Segmentation output directory (default: ../../result/04_segmentation/)")
+    parser.add_argument("--output_dir", default="../../result/05_venation_network/",
+                        help="Venation network output directory (default: ../../result/05_venation_network/)")
+    parser.add_argument("--wing_name", type=str,
+                        help="Process only this wing (e.g., population_34+FMNH_4669630)")
+    parser.add_argument("--population_id", type=int,
+                        help="Process only this population (e.g., 34)")
+
+    # Save flags
+    parser.add_argument("--save_venation_network", type=str2bool, default=True,
+                        help="Save venation network graph (default: True)")
+    parser.add_argument("--save_plot", type=str2bool, default=True,
+                        help="Save plots (default: True)")
+    parser.add_argument("--save_data", type=str2bool, default=True,
+                        help="Save stats to .txt (default: True)")
+
+    args = parser.parse_args()
+
+    print(f"SVD directory: {os.path.abspath(args.svd_dir)}")
+    print(f"Input directory: {os.path.abspath(args.input_dir)}")
+    print(f"Output directory: {os.path.abspath(args.output_dir)}")
+
+    # Discover wings from Step 4 output
+    all_wings = find_all_wings(args.input_dir)
+
+    if not all_wings:
+        print(f"Error: No wings found in {args.input_dir}")
+        print("Please run Step 4 (segmentation.py) first.")
+        sys.exit(1)
+
+    # Filter by specific wing or population if requested
+    if args.wing_name:
+        if args.wing_name in all_wings:
+            wings_to_process = [args.wing_name]
+            print(f"\nProcessing specific wing: {args.wing_name}")
+        else:
+            print(f"Error: Wing '{args.wing_name}' not found in segmentation output")
+            print(f"Available wings: {all_wings[:5]}...")
+            sys.exit(1)
+    elif args.population_id is not None:
+        pop_prefix = f"population_{args.population_id}+"
+        wings_to_process = [w for w in all_wings if w.startswith(pop_prefix)]
+        if not wings_to_process:
+            print(f"Error: No wings found for population {args.population_id}")
+            sys.exit(1)
+        print(f"\nProcessing population {args.population_id}: {len(wings_to_process)} wing(s)")
+    else:
+        wings_to_process = all_wings
+        print(f"\nFound {len(wings_to_process)} wing(s) to process")
+
+    # Create output directory
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    # Process each wing
+    successful = 0
+    failed = 0
+    failed_wings = []
+
+    for i, wing_name in enumerate(wings_to_process, 1):
+        print(f"\n{'='*60}")
+        print(f"[{i}/{len(wings_to_process)}] Processing: {wing_name}")
+        print(f"{'='*60}")
+
+        try:
+            if process_single_wing(wing_name, args.svd_dir, args.input_dir,
+                                   args.output_dir, args.save_venation_network,
+                                   args.save_plot, args.save_data):
+                print(f"  Success: {wing_name}")
+                successful += 1
+            else:
+                print(f"  Failed: {wing_name}")
+                failed += 1
+                failed_wings.append(wing_name)
+        except Exception as e:
+            print(f"  Failed: {wing_name} - {e}")
+            import traceback
+            traceback.print_exc()
+            failed += 1
+            failed_wings.append(wing_name)
+
+    # Summary
+    print("\n" + "=" * 60)
+    print("Processing complete!")
+    print(f"Successful: {successful}")
+    print(f"Failed: {failed}")
+    if failed_wings:
+        print(f"Failed wings: {', '.join(failed_wings)}")
+    print("=" * 60)
+
+    if failed > 0:
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
 
 
