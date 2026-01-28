@@ -222,7 +222,6 @@ python convert_dng_to_png.py --input_dir /path/to/dng --output_dir /path/to/png
 arphia_conspersa/
 ├── README.md
 ├── requirements.txt
-├── setup.sh                 # Automated installation
 ├── data/                    # Input images (converted PNG)
 ├── result/                  # Pipeline outputs
 └── source/                  # Source code
