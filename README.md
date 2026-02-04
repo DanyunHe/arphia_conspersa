@@ -15,8 +15,8 @@ Code for extracting and analyzing morphological information from grasshopper win
 ## Installation
 
 ### Requirements
-- Python 3.10 (recommended) or 3.9+
-- CUDA-capable GPU (recommended for Linux/Windows; macOS uses MPS or CPU)
+- Python 3.10 (recommended) or 3.8+
+- CUDA-capable GPU (recommended)
 - 16GB+ RAM recommended
 
 ### Quick Setup (Recommended)
@@ -30,9 +30,9 @@ conda activate wing
 git clone https://github.com/DanyunHe/arphia_conspersa.git
 cd arphia_conspersa
 
-# 3. Install PyTorch (see https://pytorch.org for your platform)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  # Linux/Windows CUDA
-# OR: pip install torch torchvision  # macOS / CPU-only
+# 3. Install PyTorch
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  # CUDA
+# OR for CPU-only: pip install torch torchvision
 
 # 4. Install Python dependencies
 pip install -r requirements.txt
@@ -60,9 +60,9 @@ conda create -n wing python=3.10
 conda activate wing
 
 # 2. Install PyTorch (visit pytorch.org for your system)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  # Linux/Windows CUDA
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  # CUDA
 # OR
-pip install torch torchvision  # macOS / CPU-only
+pip install torch torchvision  # CPU only
 
 # 3. Install dependencies
 pip install -r requirements.txt
@@ -98,7 +98,7 @@ cd source/sknw-master && pip install -e . && cd ../..
 # Place in: data/deeplabcut_whole/
 
 # 8. Verify installation
-python -c "import torch, deeplabcut, cellpose, segment_anything; print('Success!')"
+python -c "import torch, tensorflow, deeplabcut, cellpose, segment_anything; print('Success!')"
 ```
 
 ---
@@ -250,11 +250,17 @@ arphia_conspersa/
 
 ### GPU Out of Memory
 ```bash
-CUDA_VISIBLE_DEVICES=0 python script.py
+CUDA_VISIBLE_DEVICES=0 TF_FORCE_GPU_ALLOW_GROWTH=true python script.py
 ```
 
+### TensorFlow Version
+Must use TensorFlow 2.10.0 for DeepLabCut 2.2.3 compatibility. Do not upgrade.
+
 ### Python Version
-Python 3.10 is recommended. Python 3.9 may also work.
+Use Python 3.10. Some packages may fail with 3.11+.
+
+### CUDA Library Warnings
+Warnings like `libnvinfer.so.7: cannot open shared object` are typically non-critical.
 
 ### Directory Structure and Data Flow
 All pipeline steps now read from and write to the `result/` directory:
@@ -298,6 +304,7 @@ If you see "file not found" errors:
 
 ### Environment Variables
 - `CUDA_VISIBLE_DEVICES=0` - Select GPU
+- `TF_FORCE_GPU_ALLOW_GROWTH=true` - Dynamic GPU memory allocation
 - `CELLPOSE_LOCAL_MODELS_PATH=~/.cellpose/models` - Custom Cellpose models
 
 ---
