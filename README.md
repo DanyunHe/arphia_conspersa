@@ -12,11 +12,22 @@ Code for extracting and analyzing morphological information from grasshopper win
 
 ---
 
+## System Requirements
+
+**This code requires:**
+- **Linux operating system** (tested on Ubuntu)
+- **NVIDIA GPU with CUDA support** (required for TensorFlow and PyTorch deep learning models)
+- Python 3.10 (recommended) or 3.8+
+- 16GB+ RAM recommended
+
+**Note**: This pipeline is not compatible with macOS or Windows due to dependencies on CUDA and Linux-specific compilation requirements for the alignment step.
+
 ## Installation
 
 ### Requirements
+- Linux OS with NVIDIA GPU
+- CUDA-capable NVIDIA GPU (required)
 - Python 3.10 (recommended) or 3.8+
-- CUDA-capable GPU (recommended)
 - 16GB+ RAM recommended
 
 ### Quick Setup (Recommended)
