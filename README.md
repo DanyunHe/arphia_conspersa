@@ -1,13 +1,12 @@
 # Grasshopper Wing Analysis Pipeline
-
-Code for extracting and analyzing morphological information from grasshopper wing images (Arphia conspersa).
+This repository contains the code for the usage note in paper XXX. It contains the pipeline to extract and analyze the morphological information from raw wing images in the grasshopper Arphia Conspersa wing dataset. 
 
 ## Pipeline Overview
 
-1. **Find Points** - Identify key regions (background, forewing, hindwing, body) using DeepLabCut
-2. **Wing Extraction** - Separate forewing and hindwing using Segment Anything Model (SAM)
+1. **Find Points** - Identify key regions (background, forewing, hindwing, body) using [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut)
+2. **Wing Extraction** - Separate forewing and hindwing using [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything)
 3. **Alignment & SVD** - Align images and apply SVD to emphasize wing skeleton
-4. **Domain Segmentation** - Segment wing domains and veins using Cellpose
+4. **Domain Segmentation** - Segment wing domains and veins using [Cellpose Model](https://www.cellpose.org/)
 5. **Venation Network** - Convert masks into graph structure with vertices and edges
 
 ---
@@ -23,12 +22,6 @@ Code for extracting and analyzing morphological information from grasshopper win
 **Note**: This pipeline is not compatible with macOS or Windows due to dependencies on CUDA and Linux-specific compilation requirements for the alignment step.
 
 ## Installation
-
-### Requirements
-- Linux OS with NVIDIA GPU
-- CUDA-capable NVIDIA GPU (required)
-- Python 3.10 (recommended) or 3.8+
-- 16GB+ RAM recommended
 
 ### Quick Setup (Recommended)
 
@@ -59,7 +52,7 @@ cd source/sknw-master && pip install -e . && cd ../..
 bash download_data.sh
 ```
 
-**Note**: The download script will download all required pre-trained models automatically
+**Note**: The download script will download sample images and all required pre-trained models automatically
 
 ### Manual Installation
 
