@@ -1,6 +1,8 @@
 # Grasshopper Wing Analysis Pipeline
 This repository contains the code for the usage note in paper XXX. It contains the pipeline to extract and analyze the morphological information from raw wing images in the grasshopper Arphia Conspersa wing dataset. 
 
+![intro_image](intro_img.jpeg)
+
 ## Pipeline Overview
 
 1. **Find Points** - Identify key regions (background, forewing, hindwing, body) using [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut)
