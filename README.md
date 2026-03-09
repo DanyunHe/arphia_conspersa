@@ -1,7 +1,7 @@
 # Grasshopper Wing Analysis Pipeline
 This repository contains the code for the usage note in paper XXX. It contains the pipeline to extract and analyze the morphological information from raw wing images in the grasshopper Arphia Conspersa wing dataset. 
 
-![intro_image](intro_img2.png)
+![intro_image](intro_img.jpeg)
 
 ## Pipeline Overview
 
@@ -110,8 +110,6 @@ python -c "import torch, tensorflow, deeplabcut, cellpose, segment_anything; pri
 ---
 
 ## Usage
-
-See [`source/README.md`](source/README.md) for detailed command-line usage of each step.
 
 ### Quick Example
 
